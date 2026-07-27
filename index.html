@@ -1223,7 +1223,7 @@
     difficultyOptionsEl,
     DIFFICULTIES,
     localStorage.getItem(DIFFICULTY_STORAGE_KEY) || "intermedio",
-    (id) => { applyDifficulty(id); newQuestion(); },
+    (id) => { applyDifficulty(id); buildFactQueue(); newQuestion(); },
     (item) => t(item.labelKey)
   );
   applyDifficulty(localStorage.getItem(DIFFICULTY_STORAGE_KEY) || "intermedio");
@@ -1310,14 +1310,36 @@
 
   // ---------- Generación de preguntas ----------
   // Aislado para poder ampliarlo más adelante (más operaciones, nº de dígitos, etc.)
-  function generateQuestion(previous) {
+  // Las combinaciones se reparten como una baraja (sin repetir) hasta agotarla y
+  // volver a barajar; así no salen "8×7" y "7×8" seguidas dentro de la misma fase.
+  let factQueue = [];
+
+  function buildFactQueue() {
     const { min, max } = currentDifficulty();
-    const span = max - min + 1;
-    let a, b;
-    do {
-      a = min + Math.floor(Math.random() * span);
-      b = min + Math.floor(Math.random() * span);
-    } while (previous && a === previous.a && b === previous.b);
+    const facts = [];
+    for (let x = min; x <= max; x++) {
+      for (let y = x; y <= max; y++) {
+        facts.push([x, y]);
+      }
+    }
+    for (let i = facts.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [facts[i], facts[j]] = [facts[j], facts[i]];
+    }
+    factQueue = facts;
+  }
+
+  function drawFact() {
+    if (factQueue.length === 0) buildFactQueue();
+    const [x, y] = factQueue.pop();
+    return Math.random() < 0.5 ? [x, y] : [y, x];
+  }
+
+  function generateQuestion(previous) {
+    let [a, b] = drawFact();
+    if (previous && a === previous.a && b === previous.b) {
+      [a, b] = drawFact();
+    }
     return { a, b, product: a * b };
   }
 
@@ -1371,6 +1393,7 @@
     gameOver = false;
     gameOverOverlay.hidden = true;
     prizeOverlay.hidden = true;
+    buildFactQueue();
     updateScoreboard();
     updateLivesDisplay();
     updatePhaseDisplay();
@@ -1393,6 +1416,7 @@
     phaseProgress = 0; // reintenta la fase actual desde el principio, sin perder el número de fase alcanzado
     gameOver = false;
     gameOverOverlay.hidden = true;
+    buildFactQueue();
     updateLivesDisplay();
     updatePhaseDisplay();
     updateScoreboard();
@@ -1454,6 +1478,7 @@
         phaseUp = true;
         extraMsg += t("phaseUnlockedSuffix")(phase);
         if (completedPhase % 5 === 0) milestonePhase = completedPhase;
+        buildFactQueue(); // fase nueva → baraja de operaciones fresca, sin repeticiones
       }
 
       answerDisplayEl.className = "answer-display correct";
