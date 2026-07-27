@@ -1,6 +1,6 @@
 // Subir este número cada vez que se publique una versión nueva del juego,
 // para que los dispositivos que ya instalaron la app cojan los cambios.
-const CACHE_NAME = "tablas-multiplicar-v7";
+const CACHE_NAME = "tablas-multiplicar-v8";
 
 const ASSETS = [
   "./",
