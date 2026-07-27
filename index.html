@@ -494,6 +494,60 @@
     color: white;
     border-color: var(--primary);
   }
+  .help-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,4,18,0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    padding: 20px;
+  }
+  .help-overlay[hidden] { display: none; }
+  .help-box {
+    background: var(--card);
+    border: 2px solid var(--primary);
+    border-radius: 24px;
+    padding: 26px 24px;
+    max-width: 360px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 0 40px var(--shadow);
+    text-align: left;
+  }
+  .help-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .help-list {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .help-list li {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--text);
+  }
+  .help-close-btn {
+    display: block;
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body data-theme="kuromi">
@@ -509,6 +563,7 @@
   </div>
 
   <div class="top-controls">
+    <button class="icon-btn" id="helpBtn" title="Cómo jugar">❓</button>
     <button class="icon-btn" id="settingsBtn" title="Configuración">🎚️</button>
     <button class="icon-btn" id="themeBtn" title="Cambiar tema">🎨</button>
     <button class="icon-btn" id="muteBtn" title="Silenciar/activar sonido">🔊</button>
@@ -655,6 +710,14 @@
       <button class="prize-continue-btn" id="prizeContinueBtn">Seguir escalando →</button>
     </div>
   </div>
+
+  <div class="help-overlay" id="helpOverlay" hidden>
+    <div class="help-box">
+      <div class="help-title" id="helpTitle">¿Cómo se juega?</div>
+      <ul class="help-list" id="helpList"></ul>
+      <button class="help-close-btn" id="helpCloseBtn">¡A jugar! 🚀</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -711,6 +774,11 @@
   const durationLabelText = document.getElementById("durationLabelText");
   const keypadLabelText = document.getElementById("keypadLabelText");
   const languageLabelText = document.getElementById("languageLabelText");
+  const helpBtn = document.getElementById("helpBtn");
+  const helpOverlay = document.getElementById("helpOverlay");
+  const helpTitleEl = document.getElementById("helpTitle");
+  const helpListEl = document.getElementById("helpList");
+  const helpCloseBtn = document.getElementById("helpCloseBtn");
   const micRingProgress = document.getElementById("micRingProgress");
   const countdownEl = document.getElementById("countdown");
   const livesDisplayEl = document.getElementById("livesDisplay");
@@ -749,6 +817,18 @@
       installGeneric: "Instala el juego en este dispositivo para jugar como una app.",
       installBtn: "Instalar",
       installDismissTooltip: "Cerrar",
+      helpTooltip: "Cómo jugar",
+      helpTitle: "¿Cómo se juega?",
+      helpBullets: [
+        "🎯 Objetivo: responde N × M con el teclado o diciéndolo en voz alta.",
+        "🎤 Voz: pulsa el micrófono y di el número; tienes unos segundos para contestar.",
+        "❤️ Vidas: empiezas con 3; pierdes una si fallas. Si se acaban, puedes reintentar la fase.",
+        "🏔️ Fases: cada 10 aciertos subes de fase y avanzas por la montaña.",
+        "🔥 Racha: acierta muchas seguidas para ganar una vida extra.",
+        "🏆 Premios: cada 5 fases consigues un premio especial.",
+        "🎚️ Configuración: cambia dificultad, idioma, tema y más tocando el icono de ajustes."
+      ],
+      helpCloseBtn: "¡A jugar! 🚀",
       settingsTooltip: "Configuración",
       themeTooltip: "Cambiar tema",
       muteTooltip: "Silenciar/activar sonido",
@@ -793,6 +873,18 @@
       installGeneric: "Install the game on this device to play it like an app.",
       installBtn: "Install",
       installDismissTooltip: "Close",
+      helpTooltip: "How to play",
+      helpTitle: "How to play",
+      helpBullets: [
+        "🎯 Goal: answer N × M using the keypad or by saying it out loud.",
+        "🎤 Voice: tap the microphone and say the number; you have a few seconds to answer.",
+        "❤️ Lives: you start with 3; you lose one for each wrong answer. If you run out, you can retry the stage.",
+        "🏔️ Stages: every 10 correct answers you level up and move along the mountain.",
+        "🔥 Streak: get many in a row to earn an extra life.",
+        "🏆 Prizes: every 5 stages you win a special prize.",
+        "🎚️ Settings: change difficulty, language, theme and more from the settings icon."
+      ],
+      helpCloseBtn: "Let's play! 🚀",
       settingsTooltip: "Settings",
       themeTooltip: "Change theme",
       muteTooltip: "Mute/unmute sound",
@@ -837,6 +929,18 @@
       installGeneric: "Installiere das Spiel auf diesem Gerät, um es wie eine App zu spielen.",
       installBtn: "Installieren",
       installDismissTooltip: "Schließen",
+      helpTooltip: "Spielanleitung",
+      helpTitle: "Wie spielt man?",
+      helpBullets: [
+        "🎯 Ziel: Beantworte N × M über das Tastenfeld oder indem du es laut sagst.",
+        "🎤 Sprache: Tippe auf das Mikrofon und sag die Zahl; du hast ein paar Sekunden Zeit.",
+        "❤️ Leben: Du startest mit 3; bei jeder falschen Antwort verlierst du eines. Sind sie alle weg, kannst du die Stufe nochmal versuchen.",
+        "🏔️ Stufen: Alle 10 richtigen Antworten steigst du eine Stufe auf und kletterst weiter den Berg hoch.",
+        "🔥 Serie: Antworte viele Male hintereinander richtig, um ein extra Leben zu bekommen.",
+        "🏆 Preise: Alle 5 Stufen gewinnst du einen besonderen Preis.",
+        "🎚️ Einstellungen: Schwierigkeit, Sprache, Design und mehr über das Einstellungssymbol ändern."
+      ],
+      helpCloseBtn: "Los geht's! 🚀",
       settingsTooltip: "Einstellungen",
       themeTooltip: "Design wechseln",
       muteTooltip: "Ton stumm/an",
@@ -881,6 +985,18 @@
       installGeneric: "在此设备上安装游戏，像应用一样使用。",
       installBtn: "安装",
       installDismissTooltip: "关闭",
+      helpTooltip: "怎么玩",
+      helpTitle: "怎么玩？",
+      helpBullets: [
+        "🎯 目标：用键盘输入或用语音说出 N × M 的答案。",
+        "🎤 语音：点击麦克风说出数字，你有几秒钟的时间回答。",
+        "❤️ 生命：一开始有 3 条生命，答错会失去一条。生命用完后可以重新挑战本关。",
+        "🏔️ 关卡：每答对 10 题就能升一关，在地图上继续攀登。",
+        "🔥 连续答对：连续答对很多题可以获得额外生命。",
+        "🏆 奖励：每闯过 5 关会获得特别奖励。",
+        "🎚️ 设置：点击设置图标可以更改难度、语言、主题等。"
+      ],
+      helpCloseBtn: "开始玩！🚀",
       settingsTooltip: "设置",
       themeTooltip: "切换主题",
       muteTooltip: "静音/开启声音",
@@ -1053,6 +1169,32 @@
   });
 
   applyTheme(localStorage.getItem(THEME_STORAGE_KEY) || "kuromi");
+
+  // ---------- Ayuda / cómo jugar ----------
+  const HELP_SEEN_KEY = "multiplica-help-seen";
+
+  function showHelp() {
+    helpTitleEl.textContent = t("helpTitle");
+    helpListEl.innerHTML = "";
+    t("helpBullets").forEach((line) => {
+      const li = document.createElement("li");
+      li.textContent = line;
+      helpListEl.appendChild(li);
+    });
+    helpCloseBtn.textContent = t("helpCloseBtn");
+    helpOverlay.hidden = false;
+  }
+
+  helpBtn.addEventListener("click", () => {
+    themePanel.hidden = true;
+    settingsPanel.hidden = true;
+    showHelp();
+  });
+
+  helpCloseBtn.addEventListener("click", () => {
+    helpOverlay.hidden = true;
+    localStorage.setItem(HELP_SEEN_KEY, "1");
+  });
 
   // ---------- Dificultad ----------
   // Rango de factores (N × M) para cada nivel. El nivel "intermedio" excluye la
@@ -1658,6 +1800,8 @@
     document.title = t("gameTitle");
     updateAppTitle();
 
+    helpBtn.title = t("helpTooltip");
+    if (!helpOverlay.hidden) showHelp();
     settingsBtn.title = t("settingsTooltip");
     themeBtn.title = t("themeTooltip");
     muteBtn.title = t("muteTooltip");
@@ -1696,6 +1840,7 @@
   updateLivesDisplay();
   updatePhaseDisplay();
   newQuestion();
+  if (!localStorage.getItem(HELP_SEEN_KEY)) showHelp();
 })();
 </script>
 </body>
