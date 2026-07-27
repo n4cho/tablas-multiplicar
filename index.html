@@ -111,6 +111,93 @@
     flex-direction: column;
     gap: 16px;
   }
+  .mode-switch {
+    display: flex;
+    gap: 8px;
+    background: var(--card);
+    border-radius: 16px;
+    padding: 5px;
+    box-shadow: 0 2px 10px var(--shadow);
+  }
+  .mode-btn {
+    flex: 1;
+    padding: 10px 6px;
+    border: none;
+    border-radius: 12px;
+    background: none;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    opacity: 0.6;
+  }
+  .mode-btn.active {
+    background: var(--primary);
+    color: white;
+    opacity: 1;
+  }
+  .learn-panel[hidden] { display: none; }
+  .learn-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .learn-controls {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 16px;
+    box-shadow: 0 4px 16px var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .learn-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .learn-stage-card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 40px 20px;
+    box-shadow: 0 4px 16px var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 160px;
+  }
+  .learn-equation {
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: var(--primary);
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    text-align: center;
+  }
+  .learn-equation.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .learn-play-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 16px;
+    background: var(--primary);
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .quiz-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .quiz-section[hidden] { display: none; }
   .mountain-panel {
     position: relative;
     border-radius: 16px;
@@ -593,6 +680,29 @@
   </div>
   <div class="theme-panel" id="themePanel" hidden></div>
 
+  <div class="mode-switch">
+    <button class="mode-btn active" id="quizModeBtn" data-mode="quiz">📝 Repaso</button>
+    <button class="mode-btn" id="learnModeBtn" data-mode="learn">🎵 Aprender</button>
+  </div>
+
+  <div class="learn-panel" id="learnPanel" hidden>
+    <div class="learn-controls">
+      <div class="learn-group">
+        <span class="settings-label" id="learnTableLabelText">Tabla</span>
+        <div class="pill-row" id="learnTableOptions"></div>
+      </div>
+      <div class="learn-group">
+        <span class="settings-label" id="learnSpeedLabelText">Velocidad</span>
+        <div class="pill-row" id="learnSpeedOptions"></div>
+      </div>
+    </div>
+    <div class="learn-stage-card">
+      <div class="learn-equation" id="learnEquation">2 × 1 = 2</div>
+    </div>
+    <button class="learn-play-btn" id="learnPlayBtn">▶ Empezar</button>
+  </div>
+
+  <div class="quiz-section" id="quizSection">
   <div class="mountain-panel">
     <svg class="mountain-svg" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Mapa de la escalada">
       <defs>
@@ -701,6 +811,7 @@
 
     <button class="next-btn" id="nextBtn">Siguiente pregunta →</button>
   </div>
+  </div>
 
   <div class="prize-overlay" id="prizeOverlay" hidden>
     <div class="prize-box">
@@ -779,6 +890,16 @@
   const helpTitleEl = document.getElementById("helpTitle");
   const helpListEl = document.getElementById("helpList");
   const helpCloseBtn = document.getElementById("helpCloseBtn");
+  const quizModeBtn = document.getElementById("quizModeBtn");
+  const learnModeBtn = document.getElementById("learnModeBtn");
+  const quizSection = document.getElementById("quizSection");
+  const learnPanel = document.getElementById("learnPanel");
+  const learnTableOptionsEl = document.getElementById("learnTableOptions");
+  const learnSpeedOptionsEl = document.getElementById("learnSpeedOptions");
+  const learnTableLabelText = document.getElementById("learnTableLabelText");
+  const learnSpeedLabelText = document.getElementById("learnSpeedLabelText");
+  const learnEquationEl = document.getElementById("learnEquation");
+  const learnPlayBtn = document.getElementById("learnPlayBtn");
   const micRingProgress = document.getElementById("micRingProgress");
   const countdownEl = document.getElementById("countdown");
   const livesDisplayEl = document.getElementById("livesDisplay");
@@ -826,6 +947,7 @@
         "🏔️ Fases: cada 10 aciertos subes de fase y avanzas por la montaña.",
         "🔥 Racha: acierta muchas seguidas para ganar una vida extra.",
         "🏆 Premios: cada 5 fases consigues un premio especial.",
+        "🎵 Modo Aprender: repite las tablas en voz e imagen a tu ritmo, ideal para aprenderlas desde cero.",
         "🎚️ Configuración: cambia dificultad, idioma, tema y más tocando el icono de ajustes."
       ],
       helpCloseBtn: "¡A jugar! 🚀",
@@ -833,6 +955,15 @@
       themeTooltip: "Cambiar tema",
       muteTooltip: "Silenciar/activar sonido",
       resetTooltip: "Reiniciar puntuación",
+      modeQuizLabel: "📝 Repaso",
+      modeLearnLabel: "🎵 Aprender",
+      learnTableLabel: "Tabla",
+      learnSpeedLabel: "Velocidad",
+      learnSpeedSlow: "Lento",
+      learnSpeedNormal: "Normal",
+      learnSpeedFast: "Rápido",
+      learnPlay: "▶ Empezar",
+      learnPause: "⏸ Pausa",
       difficultyLabel: "Dificultad",
       difficultyFacil: "Fácil",
       difficultyIntermedio: "Intermedio",
@@ -882,6 +1013,7 @@
         "🏔️ Stages: every 10 correct answers you level up and move along the mountain.",
         "🔥 Streak: get many in a row to earn an extra life.",
         "🏆 Prizes: every 5 stages you win a special prize.",
+        "🎵 Learn mode: repeat the tables out loud and visually at your own pace, great for learning them from scratch.",
         "🎚️ Settings: change difficulty, language, theme and more from the settings icon."
       ],
       helpCloseBtn: "Let's play! 🚀",
@@ -889,6 +1021,15 @@
       themeTooltip: "Change theme",
       muteTooltip: "Mute/unmute sound",
       resetTooltip: "Reset score",
+      modeQuizLabel: "📝 Review",
+      modeLearnLabel: "🎵 Learn",
+      learnTableLabel: "Table",
+      learnSpeedLabel: "Speed",
+      learnSpeedSlow: "Slow",
+      learnSpeedNormal: "Normal",
+      learnSpeedFast: "Fast",
+      learnPlay: "▶ Start",
+      learnPause: "⏸ Pause",
       difficultyLabel: "Difficulty",
       difficultyFacil: "Easy",
       difficultyIntermedio: "Medium",
@@ -938,6 +1079,7 @@
         "🏔️ Stufen: Alle 10 richtigen Antworten steigst du eine Stufe auf und kletterst weiter den Berg hoch.",
         "🔥 Serie: Antworte viele Male hintereinander richtig, um ein extra Leben zu bekommen.",
         "🏆 Preise: Alle 5 Stufen gewinnst du einen besonderen Preis.",
+        "🎵 Lernmodus: Wiederhole die Reihen in deinem eigenen Tempo mit Bild und Ton – ideal, um sie von Grund auf zu lernen.",
         "🎚️ Einstellungen: Schwierigkeit, Sprache, Design und mehr über das Einstellungssymbol ändern."
       ],
       helpCloseBtn: "Los geht's! 🚀",
@@ -945,6 +1087,15 @@
       themeTooltip: "Design wechseln",
       muteTooltip: "Ton stumm/an",
       resetTooltip: "Punktestand zurücksetzen",
+      modeQuizLabel: "📝 Wiederholung",
+      modeLearnLabel: "🎵 Lernen",
+      learnTableLabel: "Reihe",
+      learnSpeedLabel: "Geschwindigkeit",
+      learnSpeedSlow: "Langsam",
+      learnSpeedNormal: "Normal",
+      learnSpeedFast: "Schnell",
+      learnPlay: "▶ Start",
+      learnPause: "⏸ Pause",
       difficultyLabel: "Schwierigkeit",
       difficultyFacil: "Leicht",
       difficultyIntermedio: "Mittel",
@@ -994,6 +1145,7 @@
         "🏔️ 关卡：每答对 10 题就能升一关，在地图上继续攀登。",
         "🔥 连续答对：连续答对很多题可以获得额外生命。",
         "🏆 奖励：每闯过 5 关会获得特别奖励。",
+        "🎵 学习模式：按自己的节奏配合声音和画面反复练习乘法表，适合从零开始学习。",
         "🎚️ 设置：点击设置图标可以更改难度、语言、主题等。"
       ],
       helpCloseBtn: "开始玩！🚀",
@@ -1001,6 +1153,15 @@
       themeTooltip: "切换主题",
       muteTooltip: "静音/开启声音",
       resetTooltip: "重置分数",
+      modeQuizLabel: "📝 复习",
+      modeLearnLabel: "🎵 学习",
+      learnTableLabel: "乘法表",
+      learnSpeedLabel: "速度",
+      learnSpeedSlow: "慢",
+      learnSpeedNormal: "正常",
+      learnSpeedFast: "快",
+      learnPlay: "▶ 开始",
+      learnPause: "⏸ 暂停",
       difficultyLabel: "难度",
       difficultyFacil: "简单",
       difficultyIntermedio: "中等",
@@ -1307,6 +1468,186 @@
     (id) => applyLanguage(id),
     (item) => `${item.flag} ${item.nativeLabel}`
   );
+
+  // ---------- Modo: Repaso (examen) vs Aprender (repetición) ----------
+  const MODE_STORAGE_KEY = "multiplica-mode";
+  let currentMode = localStorage.getItem(MODE_STORAGE_KEY) === "learn" ? "learn" : "quiz";
+
+  function applyMode(mode) {
+    currentMode = mode === "learn" ? "learn" : "quiz";
+    quizModeBtn.classList.toggle("active", currentMode === "quiz");
+    learnModeBtn.classList.toggle("active", currentMode === "learn");
+    if (currentMode === "learn") {
+      quizSection.hidden = true;
+      learnPanel.hidden = false;
+      if (listening && recognition) {
+        try { recognition.stop(); } catch (e) {}
+      }
+      previewLearnStep();
+    } else {
+      learnPanel.hidden = true;
+      quizSection.hidden = false;
+      stopLearn();
+    }
+    localStorage.setItem(MODE_STORAGE_KEY, currentMode);
+  }
+
+  quizModeBtn.addEventListener("click", () => applyMode("quiz"));
+  learnModeBtn.addEventListener("click", () => applyMode("learn"));
+
+  // ---------- Modo Aprender: tabla, velocidad, animación progresiva y sonido ----------
+  const LEARN_TABLES = Array.from({ length: 10 }, (_, i) => ({ id: String(i + 1) }));
+  const LEARN_TABLE_STORAGE_KEY = "multiplica-learn-table";
+  let learnTable = Number(localStorage.getItem(LEARN_TABLE_STORAGE_KEY)) || 2;
+  if (learnTable < 1 || learnTable > 10) learnTable = 2;
+
+  const LEARN_SPEEDS = [
+    { id: "slow", labelKey: "learnSpeedSlow", stageHold: 550 },
+    { id: "normal", labelKey: "learnSpeedNormal", stageHold: 320 },
+    { id: "fast", labelKey: "learnSpeedFast", stageHold: 180 }
+  ];
+  const LEARN_SPEED_STORAGE_KEY = "multiplica-learn-speed";
+  let learnSpeedId = LEARN_SPEEDS.some((s) => s.id === localStorage.getItem(LEARN_SPEED_STORAGE_KEY))
+    ? localStorage.getItem(LEARN_SPEED_STORAGE_KEY)
+    : "normal";
+
+  function currentLearnSpeed() {
+    return (LEARN_SPEEDS.find((s) => s.id === learnSpeedId) || LEARN_SPEEDS[1]).stageHold;
+  }
+
+  buildPillGroup(
+    learnTableOptionsEl,
+    LEARN_TABLES,
+    String(learnTable),
+    (id) => {
+      learnTable = Number(id);
+      localStorage.setItem(LEARN_TABLE_STORAGE_KEY, id);
+      setActivePill(learnTableOptionsEl, id);
+      if (learnPlaying) { stopLearn(); startLearn(); } else { previewLearnStep(); }
+    },
+    (item) => item.id
+  );
+
+  buildPillGroup(
+    learnSpeedOptionsEl,
+    LEARN_SPEEDS,
+    learnSpeedId,
+    (id) => {
+      learnSpeedId = id;
+      localStorage.setItem(LEARN_SPEED_STORAGE_KEY, id);
+      setActivePill(learnSpeedOptionsEl, id);
+    },
+    (item) => t(item.labelKey)
+  );
+
+  // Sonido: cada tabla suena en una tonalidad distinta (escala pentatónica
+  // mayor transportada según el número de tabla) para ayudar a diferenciarlas
+  // de oído. No requiere archivos de audio, se genera con Web Audio.
+  let audioCtx = null;
+  const PENTATONIC = [0, 2, 4, 7, 9];
+
+  function ensureAudioCtx() {
+    if (!audioCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) audioCtx = new Ctx();
+    }
+    if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playLearnTone(step, table) {
+    if (muted) return;
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
+    const rootMidi = 57 + (table - 1) * 2; // cada tabla empieza en una nota distinta
+    const noteIndex = (step - 1) % PENTATONIC.length;
+    const octaveBoost = Math.floor((step - 1) / PENTATONIC.length) * 12;
+    const semitone = rootMidi + PENTATONIC[noteIndex] + octaveBoost;
+    const freq = 440 * Math.pow(2, (semitone - 69) / 12);
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.22, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.45);
+    } catch (e) {}
+  }
+
+  let learnPlaying = false;
+  let learnStep = 1;
+  let learnTimer = null;
+  const LEARN_FADE_MS = 250;
+
+  function previewLearnStep() {
+    const product = learnTable * 1;
+    learnEquationEl.textContent = `${learnTable} × 1 = ${product}`;
+    learnEquationEl.classList.add("visible");
+  }
+
+  function runLearnStep(step) {
+    if (!learnPlaying) return;
+    const product = learnTable * step;
+    const stages = [
+      `${learnTable}`,
+      `${learnTable} ×`,
+      `${learnTable} × ${step}`,
+      `${learnTable} × ${step} =`,
+      `${learnTable} × ${step} = ${product}`
+    ];
+    let i = 0;
+
+    function showNextStage() {
+      if (!learnPlaying) return;
+      learnEquationEl.textContent = stages[i];
+      if (i === 0) {
+        void learnEquationEl.offsetWidth;
+        learnEquationEl.classList.add("visible");
+      }
+      const isLast = i === stages.length - 1;
+      if (isLast) playLearnTone(step, learnTable);
+      i++;
+      const stageHold = currentLearnSpeed();
+      if (i < stages.length) {
+        learnTimer = setTimeout(showNextStage, stageHold);
+      } else {
+        learnTimer = setTimeout(() => {
+          if (!learnPlaying) return;
+          learnEquationEl.classList.remove("visible");
+          learnTimer = setTimeout(() => {
+            if (!learnPlaying) return;
+            learnStep = step >= 10 ? 1 : step + 1;
+            runLearnStep(learnStep);
+          }, LEARN_FADE_MS);
+        }, stageHold * 2.5);
+      }
+    }
+    showNextStage();
+  }
+
+  function startLearn() {
+    if (learnPlaying) return;
+    ensureAudioCtx();
+    learnPlaying = true;
+    learnPlayBtn.textContent = t("learnPause");
+    learnStep = 1;
+    learnEquationEl.classList.remove("visible");
+    runLearnStep(learnStep);
+  }
+
+  function stopLearn() {
+    learnPlaying = false;
+    learnPlayBtn.textContent = t("learnPlay");
+    clearTimeout(learnTimer);
+  }
+
+  learnPlayBtn.addEventListener("click", () => {
+    if (learnPlaying) stopLearn(); else startLearn();
+  });
 
   // ---------- Generación de preguntas ----------
   // Aislado para poder ampliarlo más adelante (más operaciones, nº de dígitos, etc.)
@@ -1850,6 +2191,11 @@
     scoreCorrectLabelEl.textContent = t("scoreCorrect");
     scoreStreakLabelEl.textContent = t("scoreStreak");
     phaseWordEl.textContent = t("phaseLabel");
+    quizModeBtn.textContent = t("modeQuizLabel");
+    learnModeBtn.textContent = t("modeLearnLabel");
+    learnTableLabelText.textContent = t("learnTableLabel");
+    learnSpeedLabelText.textContent = t("learnSpeedLabel");
+    learnPlayBtn.textContent = learnPlaying ? t("learnPause") : t("learnPlay");
 
     retranslatePills();
     setActivePill(languageOptionsEl, currentLanguage);
@@ -1865,6 +2211,7 @@
   updateLivesDisplay();
   updatePhaseDisplay();
   newQuestion();
+  applyMode(currentMode);
   if (!localStorage.getItem(HELP_SEEN_KEY)) showHelp();
 })();
 </script>
