@@ -516,20 +516,24 @@
   </div>
   <div class="settings-panel" id="settingsPanel" hidden>
     <div class="settings-group">
-      <span class="settings-label">Dificultad</span>
+      <span class="settings-label" id="difficultyLabelText">Dificultad</span>
       <div class="pill-row" id="difficultyOptions"></div>
     </div>
     <div class="settings-group">
-      <span class="settings-label">Micrófono</span>
+      <span class="settings-label" id="micLabelText">Micrófono</span>
       <div class="pill-row" id="micModeOptions"></div>
     </div>
     <div class="settings-group">
-      <span class="settings-label">Duración grabación</span>
+      <span class="settings-label" id="durationLabelText">Duración grabación</span>
       <div class="pill-row" id="micDurationOptions"></div>
     </div>
     <div class="settings-group">
-      <span class="settings-label">Teclado</span>
+      <span class="settings-label" id="keypadLabelText">Teclado</span>
       <div class="pill-row" id="keypadOptions"></div>
+    </div>
+    <div class="settings-group">
+      <span class="settings-label" id="languageLabelText">Idioma</span>
+      <div class="pill-row" id="languageOptions"></div>
     </div>
   </div>
   <div class="theme-panel" id="themePanel" hidden></div>
@@ -587,21 +591,21 @@
     </svg>
     <div class="lives" id="livesDisplay">❤️❤️❤️</div>
     <div class="mountain-caption">
-      <span>Fase <span id="phaseNum">1</span></span>
+      <span><span id="phaseWord">Fase</span> <span id="phaseNum">1</span></span>
       <span class="mountain-caption-sep">·</span>
       <span id="phaseFraction">0/10</span>
     </div>
   </div>
 
   <div class="scoreboard">
-    <div>Aciertos: <span class="value" id="correctCount">0</span>/<span id="totalCount">0</span></div>
-    <div>Racha: <span class="value" id="streakCount">0</span></div>
+    <div><span id="scoreCorrectLabel">Aciertos</span>: <span class="value" id="correctCount">0</span>/<span id="totalCount">0</span></div>
+    <div><span id="scoreStreakLabel">Racha</span>: <span class="value" id="streakCount">0</span></div>
   </div>
 
   <div class="card">
     <div class="game-over-overlay" id="gameOverOverlay" hidden>
       <div class="game-over-box">
-        <div class="game-over-title">💔 ¡Sin vidas!</div>
+        <div class="game-over-title" id="gameOverTitle">💔 ¡Sin vidas!</div>
         <div class="game-over-detail" id="gameOverDetail">Fase 1 · 0/10</div>
         <button class="game-over-btn" id="gameOverRetryBtn">Volver a intentar</button>
       </div>
@@ -688,6 +692,8 @@
   const correctCountEl = document.getElementById("correctCount");
   const totalCountEl = document.getElementById("totalCount");
   const streakCountEl = document.getElementById("streakCount");
+  const scoreCorrectLabelEl = document.getElementById("scoreCorrectLabel");
+  const scoreStreakLabelEl = document.getElementById("scoreStreakLabel");
   const muteBtn = document.getElementById("muteBtn");
   const resetBtn = document.getElementById("resetBtn");
   const themeBtn = document.getElementById("themeBtn");
@@ -699,13 +705,21 @@
   const micModeOptionsEl = document.getElementById("micModeOptions");
   const micDurationOptionsEl = document.getElementById("micDurationOptions");
   const keypadOptionsEl = document.getElementById("keypadOptions");
+  const languageOptionsEl = document.getElementById("languageOptions");
+  const difficultyLabelText = document.getElementById("difficultyLabelText");
+  const micLabelText = document.getElementById("micLabelText");
+  const durationLabelText = document.getElementById("durationLabelText");
+  const keypadLabelText = document.getElementById("keypadLabelText");
+  const languageLabelText = document.getElementById("languageLabelText");
   const micRingProgress = document.getElementById("micRingProgress");
   const countdownEl = document.getElementById("countdown");
   const livesDisplayEl = document.getElementById("livesDisplay");
+  const phaseWordEl = document.getElementById("phaseWord");
   const phaseNumEl = document.getElementById("phaseNum");
   const phaseFractionEl = document.getElementById("phaseFraction");
   const climbMarkerEl = document.getElementById("climbMarker");
   const gameOverOverlay = document.getElementById("gameOverOverlay");
+  const gameOverTitleEl = document.getElementById("gameOverTitle");
   const gameOverDetail = document.getElementById("gameOverDetail");
   const gameOverRetryBtn = document.getElementById("gameOverRetryBtn");
   const prizeOverlay = document.getElementById("prizeOverlay");
@@ -713,6 +727,212 @@
   const prizeLabelEl = document.getElementById("prizeLabel");
   const prizeDetailEl = document.getElementById("prizeDetail");
   const prizeContinueBtn = document.getElementById("prizeContinueBtn");
+
+  // ---------- Idiomas ----------
+  // Añadir un idioma nuevo: una entrada aquí + un bloque en I18N + (opcional) su
+  // propio mapa de números hablados en NUMBER_WORDS para el reconocimiento de voz.
+  const LANGUAGES = [
+    { id: "es", flag: "🇪🇸", nativeLabel: "Español", speechLang: "es-ES" },
+    { id: "en", flag: "🇬🇧", nativeLabel: "English", speechLang: "en-US" },
+    { id: "de", flag: "🇩🇪", nativeLabel: "Deutsch", speechLang: "de-DE" },
+    { id: "zh", flag: "🇨🇳", nativeLabel: "中文", speechLang: "zh-CN" }
+  ];
+  const LANG_STORAGE_KEY = "multiplica-language";
+  let currentLanguage = LANGUAGES.some((l) => l.id === localStorage.getItem(LANG_STORAGE_KEY))
+    ? localStorage.getItem(LANG_STORAGE_KEY)
+    : "es";
+
+  const I18N = {
+    es: {
+      gameTitle: "Tablas de multiplicar",
+      installIos: 'Instala el juego: toca compartir 📤 y luego "Añadir a pantalla de inicio".',
+      installGeneric: "Instala el juego en este dispositivo para jugar como una app.",
+      installBtn: "Instalar",
+      installDismissTooltip: "Cerrar",
+      settingsTooltip: "Configuración",
+      themeTooltip: "Cambiar tema",
+      muteTooltip: "Silenciar/activar sonido",
+      resetTooltip: "Reiniciar puntuación",
+      difficultyLabel: "Dificultad",
+      difficultyFacil: "Fácil",
+      difficultyIntermedio: "Intermedio",
+      difficultyDificil: "Difícil",
+      micLabel: "Micrófono",
+      micManual: "Manual",
+      micAuto: "Automático",
+      durationLabel: "Duración grabación",
+      keypadLabel: "Teclado",
+      keypadShow: "Mostrar",
+      keypadHide: "Solo micro",
+      languageLabel: "Idioma",
+      themeClassic: "Clásico",
+      scoreCorrect: "Aciertos",
+      scoreStreak: "Racha",
+      phaseLabel: "Fase",
+      voiceUnavailable: "El reconocimiento de voz no está disponible en este navegador. Usa el teclado.",
+      micTooltip: "Responder por voz",
+      nextBtn: "Siguiente pregunta →",
+      correctFeedback: "¡Correcto! 🎉",
+      wrongFeedback: (p) => `Casi... era ${p}`,
+      extraLifeSuffix: "  +1 vida ❤️",
+      phaseUnlockedSuffix: (n) => `  ¡Fase ${n} desbloqueada! 🚀`,
+      speakCorrect: "¡Correcto!",
+      speakCorrectPhase: "¡Correcto! Fase superada.",
+      speakWrong: (p) => `Casi. Era ${p}`,
+      gameOverTitle: "💔 ¡Sin vidas!",
+      gameOverDetail: (ph, prog, len) => `Fase ${ph} · ${prog}/${len} en esta fase`,
+      gameOverRetry: "Volver a intentar",
+      prizeLabels: ["¡Trofeo dorado!", "¡Medalla de oro!", "¡Peluche de premio!", "¡Insignia de campeona!", "¡Corona de campeona!"],
+      prizeDetail: (n) => `¡Has superado ${n} fases!`,
+      prizeContinue: "Seguir escalando →",
+      prizeSpeak: (label) => `¡Premio! ${label}`
+    },
+    en: {
+      gameTitle: "Multiplication Tables",
+      installIos: 'Install the game: tap share 📤, then "Add to Home Screen".',
+      installGeneric: "Install the game on this device to play it like an app.",
+      installBtn: "Install",
+      installDismissTooltip: "Close",
+      settingsTooltip: "Settings",
+      themeTooltip: "Change theme",
+      muteTooltip: "Mute/unmute sound",
+      resetTooltip: "Reset score",
+      difficultyLabel: "Difficulty",
+      difficultyFacil: "Easy",
+      difficultyIntermedio: "Medium",
+      difficultyDificil: "Hard",
+      micLabel: "Microphone",
+      micManual: "Manual",
+      micAuto: "Automatic",
+      durationLabel: "Recording length",
+      keypadLabel: "Keypad",
+      keypadShow: "Show",
+      keypadHide: "Mic only",
+      languageLabel: "Language",
+      themeClassic: "Classic",
+      scoreCorrect: "Correct",
+      scoreStreak: "Streak",
+      phaseLabel: "Stage",
+      voiceUnavailable: "Voice recognition isn't available in this browser. Use the keypad.",
+      micTooltip: "Answer by voice",
+      nextBtn: "Next question →",
+      correctFeedback: "Correct! 🎉",
+      wrongFeedback: (p) => `Not quite... it was ${p}`,
+      extraLifeSuffix: "  +1 life ❤️",
+      phaseUnlockedSuffix: (n) => `  Stage ${n} unlocked! 🚀`,
+      speakCorrect: "Correct!",
+      speakCorrectPhase: "Correct! Stage cleared.",
+      speakWrong: (p) => `Not quite. It was ${p}`,
+      gameOverTitle: "💔 Out of lives!",
+      gameOverDetail: (ph, prog, len) => `Stage ${ph} · ${prog}/${len} this stage`,
+      gameOverRetry: "Try again",
+      prizeLabels: ["Golden trophy!", "Gold medal!", "Prize plush toy!", "Champion badge!", "Champion's crown!"],
+      prizeDetail: (n) => `You've cleared ${n} stages!`,
+      prizeContinue: "Keep climbing →",
+      prizeSpeak: (label) => `Prize! ${label}`
+    },
+    de: {
+      gameTitle: "Einmaleins",
+      installIos: 'Spiel installieren: Teilen 📤 antippen, dann „Zum Home-Bildschirm“.',
+      installGeneric: "Installiere das Spiel auf diesem Gerät, um es wie eine App zu spielen.",
+      installBtn: "Installieren",
+      installDismissTooltip: "Schließen",
+      settingsTooltip: "Einstellungen",
+      themeTooltip: "Design wechseln",
+      muteTooltip: "Ton stumm/an",
+      resetTooltip: "Punktestand zurücksetzen",
+      difficultyLabel: "Schwierigkeit",
+      difficultyFacil: "Leicht",
+      difficultyIntermedio: "Mittel",
+      difficultyDificil: "Schwer",
+      micLabel: "Mikrofon",
+      micManual: "Manuell",
+      micAuto: "Automatisch",
+      durationLabel: "Aufnahmedauer",
+      keypadLabel: "Tastenfeld",
+      keypadShow: "Anzeigen",
+      keypadHide: "Nur Mikro",
+      languageLabel: "Sprache",
+      themeClassic: "Klassisch",
+      scoreCorrect: "Richtig",
+      scoreStreak: "Serie",
+      phaseLabel: "Stufe",
+      voiceUnavailable: "Spracherkennung ist in diesem Browser nicht verfügbar. Nutze das Tastenfeld.",
+      micTooltip: "Per Sprache antworten",
+      nextBtn: "Nächste Frage →",
+      correctFeedback: "Richtig! 🎉",
+      wrongFeedback: (p) => `Fast... es war ${p}`,
+      extraLifeSuffix: "  +1 Leben ❤️",
+      phaseUnlockedSuffix: (n) => `  Stufe ${n} freigeschaltet! 🚀`,
+      speakCorrect: "Richtig!",
+      speakCorrectPhase: "Richtig! Stufe geschafft.",
+      speakWrong: (p) => `Fast. Es war ${p}`,
+      gameOverTitle: "💔 Keine Leben mehr!",
+      gameOverDetail: (ph, prog, len) => `Stufe ${ph} · ${prog}/${len} in dieser Stufe`,
+      gameOverRetry: "Nochmal versuchen",
+      prizeLabels: ["Goldener Pokal!", "Goldmedaille!", "Kuscheltier-Preis!", "Meister-Abzeichen!", "Krone der Meisterin!"],
+      prizeDetail: (n) => `Du hast ${n} Stufen geschafft!`,
+      prizeContinue: "Weiter klettern →",
+      prizeSpeak: (label) => `Preis! ${label}`
+    },
+    zh: {
+      gameTitle: "乘法表练习",
+      installIos: '安装游戏：点击分享 📤，然后选择"添加到主屏幕"。',
+      installGeneric: "在此设备上安装游戏，像应用一样使用。",
+      installBtn: "安装",
+      installDismissTooltip: "关闭",
+      settingsTooltip: "设置",
+      themeTooltip: "切换主题",
+      muteTooltip: "静音/开启声音",
+      resetTooltip: "重置分数",
+      difficultyLabel: "难度",
+      difficultyFacil: "简单",
+      difficultyIntermedio: "中等",
+      difficultyDificil: "困难",
+      micLabel: "麦克风",
+      micManual: "手动",
+      micAuto: "自动",
+      durationLabel: "录音时长",
+      keypadLabel: "键盘",
+      keypadShow: "显示",
+      keypadHide: "仅麦克风",
+      languageLabel: "语言",
+      themeClassic: "经典",
+      scoreCorrect: "答对",
+      scoreStreak: "连续",
+      phaseLabel: "关卡",
+      voiceUnavailable: "此浏览器不支持语音识别，请使用键盘。",
+      micTooltip: "用语音回答",
+      nextBtn: "下一题 →",
+      correctFeedback: "正确！🎉",
+      wrongFeedback: (p) => `差一点…正确答案是 ${p}`,
+      extraLifeSuffix: "  +1 生命 ❤️",
+      phaseUnlockedSuffix: (n) => `  解锁第 ${n} 关！🚀`,
+      speakCorrect: "正确！",
+      speakCorrectPhase: "正确！过关了。",
+      speakWrong: (p) => `差一点，正确答案是 ${p}`,
+      gameOverTitle: "💔 生命用完了！",
+      gameOverDetail: (ph, prog, len) => `第 ${ph} 关 · 本关 ${prog}/${len}`,
+      gameOverRetry: "再试一次",
+      prizeLabels: ["金杯奖！", "金牌！", "毛绒玩具奖！", "冠军徽章！", "冠军皇冠！"],
+      prizeDetail: (n) => `你已经闯过 ${n} 关！`,
+      prizeContinue: "继续攀登 →",
+      prizeSpeak: (label) => `奖励！${label}`
+    }
+  };
+
+  function t(key) {
+    const dict = I18N[currentLanguage] || I18N.es;
+    return dict[key] !== undefined ? dict[key] : I18N.es[key];
+  }
+
+  function currentSpeechLang() {
+    return (LANGUAGES.find((l) => l.id === currentLanguage) || LANGUAGES[0]).speechLang;
+  }
+
+  function formatDuration(seconds) {
+    return currentLanguage === "zh" ? `${seconds}秒` : `${seconds} s`;
+  }
 
   // ---------- Mapa de la escalada (montaña) ----------
   // 5 puntos de control (torii) por ciclo; cada ciclo completado = "premio".
@@ -728,9 +948,9 @@
 
   function updateMountainDisplay() {
     const climbStep = (phase - 1) % 5;
-    const t = climbStep + phaseProgress / PHASE_LENGTH;
-    const segIndex = Math.min(Math.floor(t), 4);
-    const localT = t - segIndex;
+    const tt = climbStep + phaseProgress / PHASE_LENGTH;
+    const segIndex = Math.min(Math.floor(tt), 4);
+    const localT = tt - segIndex;
     const start = CLIMB_POINTS[segIndex];
     const end = CLIMB_POINTS[segIndex + 1];
     const x = start.x + (end.x - start.x) * localT;
@@ -742,18 +962,61 @@
     });
   }
 
+  // ---------- Panel de configuración (grupos de botones tipo "pill") ----------
+  // Helper genérico: reutilizado por dificultad, modo de micro, duración, teclado e idioma.
+  // Cada grupo se registra para poder retraducir sus etiquetas al cambiar de idioma.
+  const pillGroupRegistry = [];
+
+  function buildPillGroup(container, items, activeId, onSelect, getLabel) {
+    items.forEach((item) => {
+      const opt = document.createElement("button");
+      opt.className = "pill-option";
+      opt.dataset.id = item.id;
+      opt.textContent = getLabel(item);
+      opt.classList.toggle("active", item.id === activeId);
+      opt.addEventListener("click", () => onSelect(item.id));
+      container.appendChild(opt);
+    });
+    pillGroupRegistry.push({ container, items, getLabel });
+  }
+
+  function setActivePill(container, activeId) {
+    container.querySelectorAll(".pill-option").forEach((opt) => {
+      opt.classList.toggle("active", opt.dataset.id === activeId);
+    });
+  }
+
+  function retranslatePills() {
+    pillGroupRegistry.forEach(({ container, items, getLabel }) => {
+      const buttons = container.querySelectorAll(".pill-option");
+      items.forEach((item, i) => {
+        if (buttons[i]) buttons[i].textContent = getLabel(item);
+      });
+    });
+    retranslateThemePills();
+  }
+
   // ---------- Temas ----------
   // Añadir un tema nuevo solo requiere una entrada aquí + sus variables CSS (body[data-theme="..."]).
   const THEMES = [
-    { id: "kuromi", label: "Kuromi", swatch: "linear-gradient(135deg,#1b0f2b,#ff4fa3)", title: "😈 Tablas de multiplicar 🖤" },
-    { id: "classic", label: "Clásico", swatch: "linear-gradient(135deg,#5b8def,#fdf6ec)", title: "Tablas de multiplicar" }
+    { id: "kuromi", swatch: "linear-gradient(135deg,#1b0f2b,#ff4fa3)" },
+    { id: "classic", swatch: "linear-gradient(135deg,#5b8def,#fdf6ec)" }
   ];
   const THEME_STORAGE_KEY = "multiplica-theme";
 
+  function getThemeLabel(theme) {
+    return theme.id === "kuromi" ? "Kuromi" : t("themeClassic");
+  }
+
+  function updateAppTitle() {
+    const base = t("gameTitle");
+    appTitleEl.textContent = document.body.dataset.theme === "kuromi" ? `😈 ${base} 🖤` : base;
+  }
+
   function applyTheme(themeId) {
-    const theme = THEMES.find((t) => t.id === themeId) || THEMES[0];
+    const theme = THEMES.find((th) => th.id === themeId) || THEMES[0];
     document.body.dataset.theme = theme.id;
-    appTitleEl.textContent = theme.title;
+    updateAppTitle();
     themePanel.querySelectorAll(".theme-option").forEach((opt) => {
       opt.classList.toggle("active", opt.dataset.theme === theme.id);
     });
@@ -764,13 +1027,20 @@
     const opt = document.createElement("button");
     opt.className = "theme-option";
     opt.dataset.theme = theme.id;
-    opt.innerHTML = `<span class="theme-swatch" style="background:${theme.swatch}"></span>${theme.label}`;
+    opt.innerHTML = `<span class="theme-swatch" style="background:${theme.swatch}"></span><span class="theme-text">${getThemeLabel(theme)}</span>`;
     opt.addEventListener("click", () => {
       applyTheme(theme.id);
       themePanel.hidden = true;
     });
     themePanel.appendChild(opt);
   });
+
+  function retranslateThemePills() {
+    themePanel.querySelectorAll(".theme-option").forEach((opt, i) => {
+      const textEl = opt.querySelector(".theme-text");
+      if (textEl) textEl.textContent = getThemeLabel(THEMES[i]);
+    });
+  }
 
   themeBtn.addEventListener("click", () => {
     settingsPanel.hidden = true;
@@ -784,35 +1054,15 @@
 
   applyTheme(localStorage.getItem(THEME_STORAGE_KEY) || "kuromi");
 
-  // ---------- Panel de configuración (grupos de botones tipo "pill") ----------
-  // Helper genérico: reutilizado por dificultad, modo de micro, duración y teclado.
-  function buildPillGroup(container, items, activeId, onSelect) {
-    items.forEach((item) => {
-      const opt = document.createElement("button");
-      opt.className = "pill-option";
-      opt.dataset.id = item.id;
-      opt.textContent = item.label;
-      opt.classList.toggle("active", item.id === activeId);
-      opt.addEventListener("click", () => onSelect(item.id));
-      container.appendChild(opt);
-    });
-  }
-
-  function setActivePill(container, activeId) {
-    container.querySelectorAll(".pill-option").forEach((opt) => {
-      opt.classList.toggle("active", opt.dataset.id === activeId);
-    });
-  }
-
   // ---------- Dificultad ----------
   // Rango de factores (N × M) para cada nivel. El nivel "intermedio" excluye la
   // tabla del 1, que salía demasiado a menudo y hacía las preguntas triviales.
   // extraLifeStreak: racha de aciertos seguidos necesaria para ganar una vida extra
   // (más baja cuanto más difícil, porque cada pregunta ya cuesta más de por sí).
   const DIFFICULTIES = [
-    { id: "facil", label: "Fácil", min: 1, max: 5, extraLifeStreak: 30 },
-    { id: "intermedio", label: "Intermedio", min: 2, max: 10, extraLifeStreak: 25 },
-    { id: "dificil", label: "Difícil", min: 6, max: 10, extraLifeStreak: 20 }
+    { id: "facil", labelKey: "difficultyFacil", min: 1, max: 5, extraLifeStreak: 30 },
+    { id: "intermedio", labelKey: "difficultyIntermedio", min: 2, max: 10, extraLifeStreak: 25 },
+    { id: "dificil", labelKey: "difficultyDificil", min: 6, max: 10, extraLifeStreak: 20 }
   ];
   const DIFFICULTY_STORAGE_KEY = "multiplica-difficulty";
   let difficultyId;
@@ -831,14 +1081,15 @@
     difficultyOptionsEl,
     DIFFICULTIES,
     localStorage.getItem(DIFFICULTY_STORAGE_KEY) || "intermedio",
-    (id) => { applyDifficulty(id); newQuestion(); }
+    (id) => { applyDifficulty(id); newQuestion(); },
+    (item) => t(item.labelKey)
   );
   applyDifficulty(localStorage.getItem(DIFFICULTY_STORAGE_KEY) || "intermedio");
 
   // ---------- Modo de micrófono: manual (pulsar botón) o automático al cargar pregunta ----------
   const MIC_MODES = [
-    { id: "manual", label: "Manual" },
-    { id: "auto", label: "Automático" }
+    { id: "manual", labelKey: "micManual" },
+    { id: "auto", labelKey: "micAuto" }
   ];
   const MIC_MODE_STORAGE_KEY = "multiplica-mic-mode";
   let micMode;
@@ -853,15 +1104,16 @@
     micModeOptionsEl,
     MIC_MODES,
     localStorage.getItem(MIC_MODE_STORAGE_KEY) || "manual",
-    (id) => { applyMicMode(id); maybeAutoStartMic(); }
+    (id) => { applyMicMode(id); maybeAutoStartMic(); },
+    (item) => t(item.labelKey)
   );
   applyMicMode(localStorage.getItem(MIC_MODE_STORAGE_KEY) || "manual");
 
   // ---------- Duración de la grabación por voz ----------
   const MIC_DURATIONS = [
-    { id: "3", label: "3 s" },
-    { id: "5", label: "5 s" },
-    { id: "10", label: "10 s" }
+    { id: "3", seconds: 3 },
+    { id: "5", seconds: 5 },
+    { id: "10", seconds: 10 }
   ];
   const MIC_DURATION_STORAGE_KEY = "multiplica-mic-duration";
   let recordSeconds;
@@ -877,14 +1129,15 @@
     micDurationOptionsEl,
     MIC_DURATIONS,
     localStorage.getItem(MIC_DURATION_STORAGE_KEY) || "5",
-    (id) => applyMicDuration(id)
+    (id) => applyMicDuration(id),
+    (item) => formatDuration(item.seconds)
   );
   applyMicDuration(localStorage.getItem(MIC_DURATION_STORAGE_KEY) || "5");
 
   // ---------- Mostrar/ocultar teclado numérico (para dejar solo el micro) ----------
   const KEYPAD_VISIBILITY = [
-    { id: "show", label: "Mostrar" },
-    { id: "hide", label: "Solo micro" }
+    { id: "show", labelKey: "keypadShow" },
+    { id: "hide", labelKey: "keypadHide" }
   ];
   const KEYPAD_STORAGE_KEY = "multiplica-keypad-visible";
 
@@ -899,9 +1152,19 @@
     keypadOptionsEl,
     KEYPAD_VISIBILITY,
     localStorage.getItem(KEYPAD_STORAGE_KEY) || "show",
-    (id) => applyKeypadVisible(id)
+    (id) => applyKeypadVisible(id),
+    (item) => t(item.labelKey)
   );
   applyKeypadVisible(localStorage.getItem(KEYPAD_STORAGE_KEY) || "show");
+
+  // ---------- Selector de idioma ----------
+  buildPillGroup(
+    languageOptionsEl,
+    LANGUAGES,
+    currentLanguage,
+    (id) => applyLanguage(id),
+    (item) => `${item.flag} ${item.nativeLabel}`
+  );
 
   // ---------- Generación de preguntas ----------
   // Aislado para poder ampliarlo más adelante (más operaciones, nº de dígitos, etc.)
@@ -978,7 +1241,7 @@
 
   function triggerGameOver() {
     gameOver = true;
-    gameOverDetail.textContent = `Fase ${phase} · ${phaseProgress}/${PHASE_LENGTH} en esta fase`;
+    gameOverDetail.textContent = t("gameOverDetail")(phase, phaseProgress, PHASE_LENGTH);
     gameOverOverlay.hidden = false;
   }
 
@@ -996,20 +1259,21 @@
 
   // ---------- Premios (cada 5 fases superadas) ----------
   const PRIZES = [
-    { emoji: "🏆", label: "¡Trofeo dorado!" },
-    { emoji: "🥇", label: "¡Medalla de oro!" },
-    { emoji: "🧸", label: "¡Peluche de premio!" },
-    { emoji: "🎖️", label: "¡Insignia de campeona!" },
-    { emoji: "👑", label: "¡Corona de campeona!" }
+    { emoji: "🏆", index: 0 },
+    { emoji: "🥇", index: 1 },
+    { emoji: "🧸", index: 2 },
+    { emoji: "🎖️", index: 3 },
+    { emoji: "👑", index: 4 }
   ];
 
   function triggerPrize(phasesCleared) {
     const prize = PRIZES[Math.floor(Math.random() * PRIZES.length)];
+    const label = t("prizeLabels")[prize.index];
     prizeEmojiEl.textContent = prize.emoji;
-    prizeLabelEl.textContent = prize.label;
-    prizeDetailEl.textContent = `¡Has superado ${phasesCleared} fases!`;
+    prizeLabelEl.textContent = label;
+    prizeDetailEl.textContent = t("prizeDetail")(phasesCleared);
     prizeOverlay.hidden = false;
-    speak(`¡Premio! ${prize.label}`);
+    speak(t("prizeSpeak")(label));
   }
 
   prizeContinueBtn.addEventListener("click", () => {
@@ -1037,7 +1301,7 @@
       const bonusThreshold = currentDifficulty().extraLifeStreak;
       if (streakCount % bonusThreshold === 0 && lives < LIVES_CAP) {
         lives++;
-        extraMsg += "  +1 vida ❤️";
+        extraMsg += t("extraLifeSuffix");
       }
 
       let phaseUp = false;
@@ -1046,23 +1310,23 @@
         phase++;
         phaseProgress = 0;
         phaseUp = true;
-        extraMsg += `  ¡Fase ${phase} desbloqueada! 🚀`;
+        extraMsg += t("phaseUnlockedSuffix")(phase);
         if (completedPhase % 5 === 0) milestonePhase = completedPhase;
       }
 
       answerDisplayEl.className = "answer-display correct";
-      feedbackEl.textContent = "¡Correcto! 🎉" + extraMsg;
+      feedbackEl.textContent = t("correctFeedback") + extraMsg;
       feedbackEl.className = "feedback correct";
-      speak(phaseUp ? "¡Correcto! Fase superada." : "¡Correcto!");
+      speak(phaseUp ? t("speakCorrectPhase") : t("speakCorrect"));
       updateLivesDisplay();
       updatePhaseDisplay();
     } else {
       streakCount = 0;
       lives--;
       answerDisplayEl.className = "answer-display wrong";
-      feedbackEl.textContent = `Casi... era ${current.product}`;
+      feedbackEl.textContent = t("wrongFeedback")(current.product);
       feedbackEl.className = "feedback wrong";
-      speak(`Casi. Era ${current.product}`);
+      speak(t("speakWrong")(current.product));
       updateLivesDisplay();
     }
 
@@ -1152,17 +1416,69 @@
     }, 400);
   }
 
-  const SPANISH_NUMBER_WORDS = {
-    "cero": 0, "uno": 1, "una": 1, "un": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5,
-    "seis": 6, "siete": 7, "ocho": 8, "nueve": 9, "diez": 10, "once": 11, "doce": 12,
-    "trece": 13, "catorce": 14, "quince": 15, "dieciseis": 16, "dieciséis": 16,
-    "diecisiete": 17, "dieciocho": 18, "diecinueve": 19, "veinte": 20,
-    "veintiuno": 21, "veintidos": 22, "veintidós": 22, "veintitres": 23, "veintitrés": 23,
-    "veinticuatro": 24, "veinticinco": 25, "veintiseis": 26, "veintiséis": 26,
-    "veintisiete": 27, "veintiocho": 28, "veintinueve": 29,
-    "treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60,
-    "setenta": 70, "ochenta": 80, "noventa": 90, "cien": 100
+  // ---------- Números hablados por idioma (respaldo cuando el motor de voz
+  // transcribe palabras en vez de dígitos) ----------
+  const NUMBER_WORDS = {
+    es: {
+      "cero": 0, "uno": 1, "una": 1, "un": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5,
+      "seis": 6, "siete": 7, "ocho": 8, "nueve": 9, "diez": 10, "once": 11, "doce": 12,
+      "trece": 13, "catorce": 14, "quince": 15, "dieciseis": 16, "dieciséis": 16,
+      "diecisiete": 17, "dieciocho": 18, "diecinueve": 19, "veinte": 20,
+      "veintiuno": 21, "veintidos": 22, "veintidós": 22, "veintitres": 23, "veintitrés": 23,
+      "veinticuatro": 24, "veinticinco": 25, "veintiseis": 26, "veintiséis": 26,
+      "veintisiete": 27, "veintiocho": 28, "veintinueve": 29,
+      "treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60,
+      "setenta": 70, "ochenta": 80, "noventa": 90, "cien": 100
+    },
+    en: {
+      "zero": 0, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
+      "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13,
+      "fourteen": 14, "fifteen": 15, "sixteen": 16, "seventeen": 17, "eighteen": 18,
+      "nineteen": 19, "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60,
+      "seventy": 70, "eighty": 80, "ninety": 90, "hundred": 100
+    },
+    de: {} // se genera abajo (números compuestos alemanes son una sola palabra)
   };
+
+  (function buildGermanNumberWords() {
+    const ones = ["", "ein", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun"];
+    const onesStandalone = ["null", "eins", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht", "neun"];
+    const teens = ["zehn", "elf", "zwölf", "dreizehn", "vierzehn", "fünfzehn", "sechzehn", "siebzehn", "achtzehn", "neunzehn"];
+    const tens = ["", "", "zwanzig", "dreißig", "vierzig", "fünfzig", "sechzig", "siebzig", "achtzig", "neunzig"];
+    const map = NUMBER_WORDS.de;
+    onesStandalone.forEach((w, i) => { map[w] = i; });
+    teens.forEach((w, i) => { map[w] = 10 + i; });
+    for (let ten = 2; ten <= 9; ten++) {
+      map[tens[ten]] = ten * 10;
+      for (let one = 1; one <= 9; one++) {
+        map[ones[one] + "und" + tens[ten]] = ten * 10 + one;
+      }
+    }
+    map["hundert"] = 100;
+    map["einhundert"] = 100;
+  })();
+
+  const CN_DIGITS = { "零": 0, "一": 1, "二": 2, "两": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9 };
+  const CN_UNITS = { "十": 10, "百": 100 };
+
+  function parseChineseNumber(text) {
+    const chars = Array.from(text).filter((c) => c in CN_DIGITS || c in CN_UNITS);
+    if (chars.length === 0) return null;
+    let total = 0;
+    let section = 0;
+    for (const ch of chars) {
+      if (ch in CN_DIGITS) {
+        section = CN_DIGITS[ch];
+      } else {
+        const unit = CN_UNITS[ch];
+        if (unit === 10 && section === 0) section = 1; // "十" solo = 10
+        total += section * unit;
+        section = 0;
+      }
+    }
+    total += section;
+    return total;
+  }
 
   function parseSpokenNumber(transcript) {
     const cleaned = transcript.toLowerCase().trim();
@@ -1170,16 +1486,31 @@
     const digitMatch = cleaned.match(/\d+/);
     if (digitMatch) return parseInt(digitMatch[0], 10);
 
-    const words = cleaned.replace(/[.,]/g, "").split(/\s+/);
+    if (currentLanguage === "zh") return parseChineseNumber(cleaned);
+
+    const wordMap = NUMBER_WORDS[currentLanguage] || NUMBER_WORDS.es;
+
+    if (currentLanguage === "de") {
+      // Los compuestos alemanes van en una sola palabra: basta con localizarla.
+      const words = cleaned.replace(/[.,]/g, "").split(/\s+/);
+      for (const w of words) {
+        if (w in wordMap) return wordMap[w];
+      }
+      return null;
+    }
+
+    const words = cleaned.replace(/[.,-]/g, " ").split(/\s+/).filter(Boolean);
     let total = null;
     for (const word of words) {
-      if (word === "y") continue;
-      if (word in SPANISH_NUMBER_WORDS) {
-        const val = SPANISH_NUMBER_WORDS[word];
-        if (total === null) {
+      if (word === "y" || word === "and") continue;
+      if (word in wordMap) {
+        const val = wordMap[word];
+        if (val === 100 && total !== null && total > 0 && total < 10) {
+          total = total * 100; // p.ej. "one" + "hundred"
+        } else if (total === null) {
           total = val;
         } else if (total % 10 === 0 && total < 100 && val < 10) {
-          total += val; // p.ej. "treinta" + "y dos"
+          total += val; // p.ej. "treinta" + "y dos" / "twenty" + "one"
         } else {
           total = val;
         }
@@ -1191,7 +1522,7 @@
   if (SpeechRecognitionImpl) {
     try {
       recognition = new SpeechRecognitionImpl();
-      recognition.lang = "es-ES";
+      recognition.lang = currentSpeechLang();
       recognition.interimResults = true;
       recognition.maxAlternatives = 3;
 
@@ -1260,7 +1591,7 @@
     if (!("speechSynthesis" in window)) return;
     try {
       const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "es-ES";
+      utter.lang = currentSpeechLang();
       window.speechSynthesis.speak(utter);
     } catch (e) {
       // Si falla la síntesis de voz, simplemente no hay refuerzo hablado.
@@ -1282,18 +1613,14 @@
   const installText = document.getElementById("installText");
   const installBtn = document.getElementById("installBtn");
   const installDismissBtn = document.getElementById("installDismissBtn");
+  const installIsIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
 
   function isStandalone() {
     return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
   }
 
-  function isIos() {
-    return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-  }
-
   if (!isStandalone() && localStorage.getItem(INSTALL_DISMISS_KEY) !== "1") {
-    if (isIos()) {
-      installText.textContent = "Instala el juego: toca compartir 📤 y luego \"Añadir a pantalla de inicio\".";
+    if (installIsIos) {
       installBtn.hidden = true;
       installBanner.hidden = false;
     } else {
@@ -1301,7 +1628,6 @@
       window.addEventListener("beforeinstallprompt", (event) => {
         event.preventDefault();
         deferredPrompt = event;
-        installText.textContent = "Instala el juego en este dispositivo para jugar como una app.";
         installBanner.hidden = false;
       });
       installBtn.addEventListener("click", async () => {
@@ -1324,6 +1650,46 @@
       navigator.serviceWorker.register("sw.js").catch(() => {});
     });
   }
+
+  // ---------- Aplicar idioma a todos los textos estáticos ----------
+  function applyLanguage(id) {
+    currentLanguage = LANGUAGES.some((l) => l.id === id) ? id : "es";
+    document.documentElement.lang = currentLanguage;
+    document.title = t("gameTitle");
+    updateAppTitle();
+
+    settingsBtn.title = t("settingsTooltip");
+    themeBtn.title = t("themeTooltip");
+    muteBtn.title = t("muteTooltip");
+    resetBtn.title = t("resetTooltip");
+    micBtn.title = t("micTooltip");
+    nextBtn.textContent = t("nextBtn");
+    voiceUnavailableEl.textContent = t("voiceUnavailable");
+    gameOverTitleEl.textContent = t("gameOverTitle");
+    gameOverRetryBtn.textContent = t("gameOverRetry");
+    prizeContinueBtn.textContent = t("prizeContinue");
+    installBtn.textContent = t("installBtn");
+    installDismissBtn.title = t("installDismissTooltip");
+    if (!isStandalone()) {
+      installText.textContent = installIsIos ? t("installIos") : t("installGeneric");
+    }
+    difficultyLabelText.textContent = t("difficultyLabel");
+    micLabelText.textContent = t("micLabel");
+    durationLabelText.textContent = t("durationLabel");
+    keypadLabelText.textContent = t("keypadLabel");
+    languageLabelText.textContent = t("languageLabel");
+    scoreCorrectLabelEl.textContent = t("scoreCorrect");
+    scoreStreakLabelEl.textContent = t("scoreStreak");
+    phaseWordEl.textContent = t("phaseLabel");
+
+    retranslatePills();
+    setActivePill(languageOptionsEl, currentLanguage);
+    localStorage.setItem(LANG_STORAGE_KEY, currentLanguage);
+
+    if (recognition) recognition.lang = currentSpeechLang();
+  }
+
+  applyLanguage(currentLanguage);
 
   // ---------- Arranque ----------
   updateScoreboard();
