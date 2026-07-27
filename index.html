@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Tablas de multiplicar</title>
+<style>
+  body[data-theme="classic"] {
+    --bg: #fdf6ec;
+    --card: #ffffff;
+    --primary: #5b8def;
+    --correct: #4caf50;
+    --correct-bg: #eaf7ea;
+    --wrong: #e5533d;
+    --wrong-glow: 229,83,61;
+    --wrong-bg: #fbeae7;
+    --text: #333;
+    --border: #ddd;
+    --key-bg: #eef2fb;
+    --key-active: #dbe4fa;
+    --clear-bg: #f5d9d4;
+    --shadow: rgba(0,0,0,0.08);
+  }
+  body[data-theme="kuromi"] {
+    --bg: radial-gradient(circle at 30% 0%, #33204a 0%, #150c22 65%);
+    --card: #241531;
+    --primary: #ff4fa3;
+    --correct: #7cff6b;
+    --correct-bg: rgba(124,255,107,0.15);
+    --wrong: #ff3d68;
+    --wrong-glow: 255,61,104;
+    --wrong-bg: rgba(255,61,104,0.15);
+    --text: #f3e8ff;
+    --border: #4a2f63;
+    --key-bg: #32203f;
+    --key-active: #442a55;
+    --clear-bg: #4a1f33;
+    --shadow: rgba(255,79,163,0.25);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 16px;
+    transition: background 0.2s;
+  }
+  .app-title {
+    text-align: center;
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--primary);
+  }
+  .app {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .scoreboard {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0 4px;
+  }
+  .scoreboard span.value { color: var(--primary); }
+  .card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 4px 16px var(--shadow);
+    text-align: center;
+    transition: background 0.2s;
+  }
+  .question {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 8px 0 20px;
+    letter-spacing: 1px;
+  }
+  .answer-display {
+    font-size: 2.2rem;
+    font-weight: 700;
+    min-height: 3rem;
+    border: 3px solid var(--border);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    color: var(--primary);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .answer-display.correct { border-color: var(--correct); background: var(--correct-bg); color: var(--correct); }
+  .answer-display.wrong { border-color: var(--wrong); background: var(--wrong-bg); color: var(--wrong); }
+  .feedback {
+    min-height: 1.6rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .feedback.correct { color: var(--correct); }
+  .feedback.wrong { color: var(--wrong); }
+  .mic-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .mic-wrap {
+    position: relative;
+    width: 148px;
+    height: 148px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mic-ring {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .mic-ring-bg {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 5;
+    opacity: 0.5;
+  }
+  .mic-ring-progress {
+    fill: none;
+    stroke: var(--wrong);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-dasharray: 289;
+    stroke-dashoffset: 289;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+  }
+  .mic-ring-progress.counting { animation: mic-countdown 3s linear forwards; }
+  @keyframes mic-countdown {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: 289; }
+  }
+  .mic-btn {
+    position: relative;
+    z-index: 1;
+    width: 116px;
+    height: 116px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary);
+    color: white;
+    font-size: 3.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px var(--shadow);
+    transition: transform 0.1s, background 0.2s;
+  }
+  .mic-btn:active { transform: scale(0.94); }
+  .mic-btn.listening { background: var(--wrong); animation: pulse 1s infinite; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(var(--wrong-glow),0.5); }
+    70% { box-shadow: 0 0 0 18px rgba(var(--wrong-glow),0); }
+    100% { box-shadow: 0 0 0 0 rgba(var(--wrong-glow),0); }
+  }
+  .countdown {
+    min-height: 1.6rem;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--wrong);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .countdown.show { opacity: 1; }
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .keypad button {
+    padding: 18px 0;
+    font-size: 1.6rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 14px;
+    background: var(--key-bg);
+    color: var(--text);
+    cursor: pointer;
+  }
+  .keypad button:active { background: var(--key-active); }
+  .keypad button.wide { grid-column: span 1; }
+  .keypad button.enter { background: var(--primary); color: white; }
+  .keypad button.clear { background: var(--clear-bg); color: var(--wrong); }
+  .next-btn {
+    margin-top: 16px;
+    padding: 14px;
+    width: 100%;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 14px;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    display: none;
+  }
+  .next-btn.show { display: block; }
+  .top-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .icon-btn {
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+  .voice-unavailable {
+    font-size: 0.85rem;
+    color: #999;
+    margin-bottom: 16px;
+  }
+  .theme-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 14px;
+    padding: 4px 4px 2px;
+  }
+  .theme-panel[hidden] { display: none; }
+  .theme-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .theme-swatch {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+  }
+  .theme-option.active .theme-swatch { border-color: var(--primary); }
+  .difficulty-panel {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 4px 4px 2px;
+  }
+  .difficulty-panel[hidden] { display: none; }
+  .difficulty-option {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 2px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .difficulty-option.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+</style>
+</head>
+<body data-theme="kuromi">
+<div class="app">
+  <h1 class="app-title" id="appTitle">Tablas de multiplicar</h1>
+
+  <div class="top-controls">
+    <button class="icon-btn" id="difficultyBtn" title="Nivel de dificultad">🎚️</button>
+    <button class="icon-btn" id="themeBtn" title="Cambiar tema">🎨</button>
+    <button class="icon-btn" id="muteBtn" title="Silenciar/activar sonido">🔊</button>
+    <button class="icon-btn" id="resetBtn" title="Reiniciar puntuación">↺</button>
+  </div>
+  <div class="difficulty-panel" id="difficultyPanel" hidden></div>
+  <div class="theme-panel" id="themePanel" hidden></div>
+
+  <div class="scoreboard">
+    <div>Aciertos: <span class="value" id="correctCount">0</span>/<span id="totalCount">0</span></div>
+    <div>Racha: <span class="value" id="streakCount">0</span></div>
+  </div>
+
+  <div class="card">
+    <div class="question" id="question">? × ? = ?</div>
+
+    <div class="answer-display" id="answerDisplay">&nbsp;</div>
+    <div class="feedback" id="feedback">&nbsp;</div>
+
+    <div class="mic-row" id="micRow">
+      <div class="mic-wrap">
+        <svg class="mic-ring" viewBox="0 0 100 100">
+          <circle class="mic-ring-bg" cx="50" cy="50" r="46"></circle>
+          <circle class="mic-ring-progress" id="micRingProgress" cx="50" cy="50" r="46"></circle>
+        </svg>
+        <button class="mic-btn" id="micBtn" title="Responder por voz">🎤</button>
+      </div>
+      <div class="countdown" id="countdown"></div>
+    </div>
+    <div class="voice-unavailable" id="voiceUnavailable" style="display:none;">
+      El reconocimiento de voz no está disponible en este navegador. Usa el teclado.
+    </div>
+
+    <div class="keypad" id="keypad">
+      <button data-num="1">1</button>
+      <button data-num="2">2</button>
+      <button data-num="3">3</button>
+      <button data-num="4">4</button>
+      <button data-num="5">5</button>
+      <button data-num="6">6</button>
+      <button data-num="7">7</button>
+      <button data-num="8">8</button>
+      <button data-num="9">9</button>
+      <button class="clear" id="clearBtn">⌫</button>
+      <button data-num="0">0</button>
+      <button class="enter" id="enterBtn">✓</button>
+    </div>
+
+    <button class="next-btn" id="nextBtn">Siguiente pregunta →</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Estado ----------
+  let current = null; // { a, b, product }
+  let currentAnswer = "";
+  let answered = false;
+  let correctCount = 0;
+  let totalCount = 0;
+  let streakCount = 0;
+  let muted = false;
+
+  // ---------- Elementos ----------
+  const questionEl = document.getElementById("question");
+  const answerDisplayEl = document.getElementById("answerDisplay");
+  const feedbackEl = document.getElementById("feedback");
+  const keypadEl = document.getElementById("keypad");
+  const clearBtn = document.getElementById("clearBtn");
+  const enterBtn = document.getElementById("enterBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const micBtn = document.getElementById("micBtn");
+  const micRow = document.getElementById("micRow");
+  const voiceUnavailableEl = document.getElementById("voiceUnavailable");
+  const correctCountEl = document.getElementById("correctCount");
+  const totalCountEl = document.getElementById("totalCount");
+  const streakCountEl = document.getElementById("streakCount");
+  const muteBtn = document.getElementById("muteBtn");
+  const resetBtn = document.getElementById("resetBtn");
+  const themeBtn = document.getElementById("themeBtn");
+  const themePanel = document.getElementById("themePanel");
+  const appTitleEl = document.getElementById("appTitle");
+  const difficultyBtn = document.getElementById("difficultyBtn");
+  const difficultyPanel = document.getElementById("difficultyPanel");
+  const micRingProgress = document.getElementById("micRingProgress");
+  const countdownEl = document.getElementById("countdown");
+
+  // ---------- Temas ----------
+  // Añadir un tema nuevo solo requiere una entrada aquí + sus variables CSS (body[data-theme="..."]).
+  const THEMES = [
+    { id: "kuromi", label: "Kuromi", swatch: "linear-gradient(135deg,#1b0f2b,#ff4fa3)", title: "😈 Tablas de multiplicar 🖤" },
+    { id: "classic", label: "Clásico", swatch: "linear-gradient(135deg,#5b8def,#fdf6ec)", title: "Tablas de multiplicar" }
+  ];
+  const THEME_STORAGE_KEY = "multiplica-theme";
+
+  function applyTheme(themeId) {
+    const theme = THEMES.find((t) => t.id === themeId) || THEMES[0];
+    document.body.dataset.theme = theme.id;
+    appTitleEl.textContent = theme.title;
+    themePanel.querySelectorAll(".theme-option").forEach((opt) => {
+      opt.classList.toggle("active", opt.dataset.theme === theme.id);
+    });
+    localStorage.setItem(THEME_STORAGE_KEY, theme.id);
+  }
+
+  THEMES.forEach((theme) => {
+    const opt = document.createElement("button");
+    opt.className = "theme-option";
+    opt.dataset.theme = theme.id;
+    opt.innerHTML = `<span class="theme-swatch" style="background:${theme.swatch}"></span>${theme.label}`;
+    opt.addEventListener("click", () => {
+      applyTheme(theme.id);
+      themePanel.hidden = true;
+    });
+    themePanel.appendChild(opt);
+  });
+
+  themeBtn.addEventListener("click", () => {
+    difficultyPanel.hidden = true;
+    themePanel.hidden = !themePanel.hidden;
+  });
+
+  applyTheme(localStorage.getItem(THEME_STORAGE_KEY) || "kuromi");
+
+  // ---------- Dificultad ----------
+  // Rango de factores (N × M) para cada nivel. El nivel "intermedio" excluye la
+  // tabla del 1, que salía demasiado a menudo y hacía las preguntas triviales.
+  const DIFFICULTIES = [
+    { id: "facil", label: "Fácil", min: 1, max: 5 },
+    { id: "intermedio", label: "Intermedio", min: 2, max: 10 },
+    { id: "dificil", label: "Difícil", min: 6, max: 10 }
+  ];
+  const DIFFICULTY_STORAGE_KEY = "multiplica-difficulty";
+  let difficultyId;
+
+  function currentDifficulty() {
+    return DIFFICULTIES.find((d) => d.id === difficultyId) || DIFFICULTIES[1];
+  }
+
+  function applyDifficulty(id) {
+    difficultyId = DIFFICULTIES.some((d) => d.id === id) ? id : "intermedio";
+    difficultyPanel.querySelectorAll(".difficulty-option").forEach((opt) => {
+      opt.classList.toggle("active", opt.dataset.difficulty === difficultyId);
+    });
+    localStorage.setItem(DIFFICULTY_STORAGE_KEY, difficultyId);
+  }
+
+  DIFFICULTIES.forEach((level) => {
+    const opt = document.createElement("button");
+    opt.className = "difficulty-option";
+    opt.dataset.difficulty = level.id;
+    opt.textContent = level.label;
+    opt.addEventListener("click", () => {
+      applyDifficulty(level.id);
+      difficultyPanel.hidden = true;
+      newQuestion();
+    });
+    difficultyPanel.appendChild(opt);
+  });
+
+  difficultyBtn.addEventListener("click", () => {
+    themePanel.hidden = true;
+    difficultyPanel.hidden = !difficultyPanel.hidden;
+  });
+
+  applyDifficulty(localStorage.getItem(DIFFICULTY_STORAGE_KEY) || "intermedio");
+
+  // ---------- Generación de preguntas ----------
+  // Aislado para poder ampliarlo más adelante (más operaciones, nº de dígitos, etc.)
+  function generateQuestion(previous) {
+    const { min, max } = currentDifficulty();
+    const span = max - min + 1;
+    let a, b;
+    do {
+      a = min + Math.floor(Math.random() * span);
+      b = min + Math.floor(Math.random() * span);
+    } while (previous && a === previous.a && b === previous.b);
+    return { a, b, product: a * b };
+  }
+
+  function newQuestion() {
+    current = generateQuestion(current);
+    currentAnswer = "";
+    answered = false;
+    questionEl.textContent = `${current.a} × ${current.b} = ?`;
+    answerDisplayEl.textContent = " ";
+    answerDisplayEl.className = "answer-display";
+    feedbackEl.textContent = " ";
+    feedbackEl.className = "feedback";
+    nextBtn.classList.remove("show");
+    setKeypadEnabled(true);
+  }
+
+  function setKeypadEnabled(enabled) {
+    keypadEl.querySelectorAll("button").forEach((b) => (b.disabled = !enabled));
+    micBtn.disabled = !enabled;
+  }
+
+  function updateAnswerDisplay() {
+    answerDisplayEl.textContent = currentAnswer.length ? currentAnswer : " ";
+  }
+
+  // ---------- Puntuación ----------
+  function updateScoreboard() {
+    correctCountEl.textContent = correctCount;
+    totalCountEl.textContent = totalCount;
+    streakCountEl.textContent = streakCount;
+  }
+
+  resetBtn.addEventListener("click", () => {
+    correctCount = 0;
+    totalCount = 0;
+    streakCount = 0;
+    updateScoreboard();
+  });
+
+  // ---------- Corrección ----------
+  function submitAnswer() {
+    if (answered) return;
+    if (currentAnswer === "") return;
+    answered = true;
+    totalCount++;
+
+    const value = parseInt(currentAnswer, 10);
+    const isCorrect = value === current.product;
+
+    if (isCorrect) {
+      correctCount++;
+      streakCount++;
+      answerDisplayEl.className = "answer-display correct";
+      feedbackEl.textContent = "¡Correcto! 🎉";
+      feedbackEl.className = "feedback correct";
+      speak("¡Correcto!");
+    } else {
+      streakCount = 0;
+      answerDisplayEl.className = "answer-display wrong";
+      feedbackEl.textContent = `Casi... era ${current.product}`;
+      feedbackEl.className = "feedback wrong";
+      speak(`Casi. Era ${current.product}`);
+    }
+
+    updateScoreboard();
+    setKeypadEnabled(false);
+    nextBtn.classList.add("show");
+
+    setTimeout(() => {
+      if (nextBtn.classList.contains("show")) newQuestion();
+    }, 2200);
+  }
+
+  // ---------- Teclado numérico ----------
+  keypadEl.querySelectorAll("button[data-num]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (answered) return;
+      if (currentAnswer.length >= 3) return;
+      currentAnswer += btn.getAttribute("data-num");
+      updateAnswerDisplay();
+    });
+  });
+
+  clearBtn.addEventListener("click", () => {
+    if (answered) return;
+    currentAnswer = currentAnswer.slice(0, -1);
+    updateAnswerDisplay();
+  });
+
+  enterBtn.addEventListener("click", submitAnswer);
+  nextBtn.addEventListener("click", newQuestion);
+
+  // ---------- Voz ----------
+  const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const RECORD_SECONDS = 3;
+  let recognition = null;
+  let listening = false;
+  let countdownTimeouts = [];
+
+  function clearCountdown() {
+    countdownTimeouts.forEach(clearTimeout);
+    countdownTimeouts = [];
+    countdownEl.classList.remove("show");
+    micRingProgress.classList.remove("counting");
+  }
+
+  function startCountdown() {
+    clearCountdown();
+    void micRingProgress.offsetWidth; // fuerza reflow para reiniciar la animación del anillo
+    micRingProgress.classList.add("counting");
+    countdownEl.classList.add("show");
+    countdownEl.textContent = RECORD_SECONDS;
+    for (let s = RECORD_SECONDS - 1; s >= 1; s--) {
+      countdownTimeouts.push(setTimeout(() => { countdownEl.textContent = s; }, (RECORD_SECONDS - s) * 1000));
+    }
+    countdownTimeouts.push(setTimeout(() => {
+      countdownEl.classList.remove("show");
+      if (listening) {
+        try { recognition.stop(); } catch (e) {}
+      }
+    }, RECORD_SECONDS * 1000));
+  }
+
+  const SPANISH_NUMBER_WORDS = {
+    "cero": 0, "uno": 1, "una": 1, "un": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5,
+    "seis": 6, "siete": 7, "ocho": 8, "nueve": 9, "diez": 10, "once": 11, "doce": 12,
+    "trece": 13, "catorce": 14, "quince": 15, "dieciseis": 16, "dieciséis": 16,
+    "diecisiete": 17, "dieciocho": 18, "diecinueve": 19, "veinte": 20,
+    "veintiuno": 21, "veintidos": 22, "veintidós": 22, "veintitres": 23, "veintitrés": 23,
+    "veinticuatro": 24, "veinticinco": 25, "veintiseis": 26, "veintiséis": 26,
+    "veintisiete": 27, "veintiocho": 28, "veintinueve": 29,
+    "treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60,
+    "setenta": 70, "ochenta": 80, "noventa": 90, "cien": 100
+  };
+
+  function parseSpokenNumber(transcript) {
+    const cleaned = transcript.toLowerCase().trim();
+
+    const digitMatch = cleaned.match(/\d+/);
+    if (digitMatch) return parseInt(digitMatch[0], 10);
+
+    const words = cleaned.replace(/[.,]/g, "").split(/\s+/);
+    let total = null;
+    for (const word of words) {
+      if (word === "y") continue;
+      if (word in SPANISH_NUMBER_WORDS) {
+        const val = SPANISH_NUMBER_WORDS[word];
+        if (total === null) {
+          total = val;
+        } else if (total % 10 === 0 && total < 100 && val < 10) {
+          total += val; // p.ej. "treinta" + "y dos"
+        } else {
+          total = val;
+        }
+      }
+    }
+    return total;
+  }
+
+  if (SpeechRecognitionImpl) {
+    try {
+      recognition = new SpeechRecognitionImpl();
+      recognition.lang = "es-ES";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 3;
+
+      recognition.onstart = () => {
+        listening = true;
+        micBtn.classList.add("listening");
+        startCountdown();
+      };
+
+      recognition.onend = () => {
+        listening = false;
+        micBtn.classList.remove("listening");
+        clearCountdown();
+      };
+
+      recognition.onerror = () => {
+        listening = false;
+        micBtn.classList.remove("listening");
+        clearCountdown();
+      };
+
+      recognition.onresult = (event) => {
+        if (answered) return;
+        for (let i = 0; i < event.results[0].length; i++) {
+          const transcript = event.results[0][i].transcript;
+          const num = parseSpokenNumber(transcript);
+          if (num !== null && !isNaN(num)) {
+            clearCountdown();
+            currentAnswer = String(num);
+            updateAnswerDisplay();
+            submitAnswer();
+            return;
+          }
+        }
+      };
+
+      micBtn.addEventListener("click", () => {
+        if (answered || listening) return;
+        try {
+          recognition.start();
+        } catch (e) {
+          // start() puede lanzar si ya hay una sesión en curso; se ignora.
+        }
+      });
+    } catch (e) {
+      recognition = null;
+    }
+  }
+
+  if (!recognition) {
+    micRow.style.display = "none";
+    voiceUnavailableEl.style.display = "block";
+  }
+
+  // ---------- Voz de refuerzo (TTS) ----------
+  function speak(text) {
+    if (muted) return;
+    if (!("speechSynthesis" in window)) return;
+    try {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "es-ES";
+      window.speechSynthesis.speak(utter);
+    } catch (e) {
+      // Si falla la síntesis de voz, simplemente no hay refuerzo hablado.
+    }
+  }
+
+  muteBtn.addEventListener("click", () => {
+    muted = !muted;
+    muteBtn.textContent = muted ? "🔇" : "🔊";
+    if (muted && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  });
+
+  // ---------- Arranque ----------
+  updateScoreboard();
+  newQuestion();
+})();
+</script>
+</body>
+</html>
