@@ -146,7 +146,7 @@
     transform: rotate(-90deg);
     transform-origin: 50% 50%;
   }
-  .mic-ring-progress.counting { animation: mic-countdown 3s linear forwards; }
+  .mic-ring-progress.counting { animation: mic-countdown var(--record-duration, 3s) linear forwards; }
   @keyframes mic-countdown {
     from { stroke-dashoffset: 0; }
     to { stroke-dashoffset: 289; }
@@ -189,6 +189,7 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
   }
+  .keypad[hidden] { display: none; }
   .keypad button {
     padding: 18px 0;
     font-size: 1.6rem;
@@ -261,15 +262,33 @@
     border: 3px solid transparent;
   }
   .theme-option.active .theme-swatch { border-color: var(--primary); }
-  .difficulty-panel {
+  .settings-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 6px 4px 4px;
+  }
+  .settings-panel[hidden] { display: none; }
+  .settings-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .settings-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    opacity: 0.65;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .pill-row {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
     gap: 8px;
-    padding: 4px 4px 2px;
   }
-  .difficulty-panel[hidden] { display: none; }
-  .difficulty-option {
+  .pill-option {
     padding: 6px 14px;
     border-radius: 20px;
     border: 2px solid var(--border);
@@ -279,7 +298,7 @@
     font-weight: 700;
     cursor: pointer;
   }
-  .difficulty-option.active {
+  .pill-option.active {
     background: var(--primary);
     color: white;
     border-color: var(--primary);
@@ -291,12 +310,29 @@
   <h1 class="app-title" id="appTitle">Tablas de multiplicar</h1>
 
   <div class="top-controls">
-    <button class="icon-btn" id="difficultyBtn" title="Nivel de dificultad">🎚️</button>
+    <button class="icon-btn" id="settingsBtn" title="Configuración">🎚️</button>
     <button class="icon-btn" id="themeBtn" title="Cambiar tema">🎨</button>
     <button class="icon-btn" id="muteBtn" title="Silenciar/activar sonido">🔊</button>
     <button class="icon-btn" id="resetBtn" title="Reiniciar puntuación">↺</button>
   </div>
-  <div class="difficulty-panel" id="difficultyPanel" hidden></div>
+  <div class="settings-panel" id="settingsPanel" hidden>
+    <div class="settings-group">
+      <span class="settings-label">Dificultad</span>
+      <div class="pill-row" id="difficultyOptions"></div>
+    </div>
+    <div class="settings-group">
+      <span class="settings-label">Micrófono</span>
+      <div class="pill-row" id="micModeOptions"></div>
+    </div>
+    <div class="settings-group">
+      <span class="settings-label">Duración grabación</span>
+      <div class="pill-row" id="micDurationOptions"></div>
+    </div>
+    <div class="settings-group">
+      <span class="settings-label">Teclado</span>
+      <div class="pill-row" id="keypadOptions"></div>
+    </div>
+  </div>
   <div class="theme-panel" id="themePanel" hidden></div>
 
   <div class="scoreboard">
@@ -375,8 +411,12 @@
   const themeBtn = document.getElementById("themeBtn");
   const themePanel = document.getElementById("themePanel");
   const appTitleEl = document.getElementById("appTitle");
-  const difficultyBtn = document.getElementById("difficultyBtn");
-  const difficultyPanel = document.getElementById("difficultyPanel");
+  const settingsBtn = document.getElementById("settingsBtn");
+  const settingsPanel = document.getElementById("settingsPanel");
+  const difficultyOptionsEl = document.getElementById("difficultyOptions");
+  const micModeOptionsEl = document.getElementById("micModeOptions");
+  const micDurationOptionsEl = document.getElementById("micDurationOptions");
+  const keypadOptionsEl = document.getElementById("keypadOptions");
   const micRingProgress = document.getElementById("micRingProgress");
   const countdownEl = document.getElementById("countdown");
 
@@ -411,11 +451,36 @@
   });
 
   themeBtn.addEventListener("click", () => {
-    difficultyPanel.hidden = true;
+    settingsPanel.hidden = true;
     themePanel.hidden = !themePanel.hidden;
   });
 
+  settingsBtn.addEventListener("click", () => {
+    themePanel.hidden = true;
+    settingsPanel.hidden = !settingsPanel.hidden;
+  });
+
   applyTheme(localStorage.getItem(THEME_STORAGE_KEY) || "kuromi");
+
+  // ---------- Panel de configuración (grupos de botones tipo "pill") ----------
+  // Helper genérico: reutilizado por dificultad, modo de micro, duración y teclado.
+  function buildPillGroup(container, items, activeId, onSelect) {
+    items.forEach((item) => {
+      const opt = document.createElement("button");
+      opt.className = "pill-option";
+      opt.dataset.id = item.id;
+      opt.textContent = item.label;
+      opt.classList.toggle("active", item.id === activeId);
+      opt.addEventListener("click", () => onSelect(item.id));
+      container.appendChild(opt);
+    });
+  }
+
+  function setActivePill(container, activeId) {
+    container.querySelectorAll(".pill-option").forEach((opt) => {
+      opt.classList.toggle("active", opt.dataset.id === activeId);
+    });
+  }
 
   // ---------- Dificultad ----------
   // Rango de factores (N × M) para cada nivel. El nivel "intermedio" excluye la
@@ -434,31 +499,85 @@
 
   function applyDifficulty(id) {
     difficultyId = DIFFICULTIES.some((d) => d.id === id) ? id : "intermedio";
-    difficultyPanel.querySelectorAll(".difficulty-option").forEach((opt) => {
-      opt.classList.toggle("active", opt.dataset.difficulty === difficultyId);
-    });
+    setActivePill(difficultyOptionsEl, difficultyId);
     localStorage.setItem(DIFFICULTY_STORAGE_KEY, difficultyId);
   }
 
-  DIFFICULTIES.forEach((level) => {
-    const opt = document.createElement("button");
-    opt.className = "difficulty-option";
-    opt.dataset.difficulty = level.id;
-    opt.textContent = level.label;
-    opt.addEventListener("click", () => {
-      applyDifficulty(level.id);
-      difficultyPanel.hidden = true;
-      newQuestion();
-    });
-    difficultyPanel.appendChild(opt);
-  });
-
-  difficultyBtn.addEventListener("click", () => {
-    themePanel.hidden = true;
-    difficultyPanel.hidden = !difficultyPanel.hidden;
-  });
-
+  buildPillGroup(
+    difficultyOptionsEl,
+    DIFFICULTIES,
+    localStorage.getItem(DIFFICULTY_STORAGE_KEY) || "intermedio",
+    (id) => { applyDifficulty(id); newQuestion(); }
+  );
   applyDifficulty(localStorage.getItem(DIFFICULTY_STORAGE_KEY) || "intermedio");
+
+  // ---------- Modo de micrófono: manual (pulsar botón) o automático al cargar pregunta ----------
+  const MIC_MODES = [
+    { id: "manual", label: "Manual" },
+    { id: "auto", label: "Automático" }
+  ];
+  const MIC_MODE_STORAGE_KEY = "multiplica-mic-mode";
+  let micMode;
+
+  function applyMicMode(id) {
+    micMode = id === "auto" ? "auto" : "manual";
+    setActivePill(micModeOptionsEl, micMode);
+    localStorage.setItem(MIC_MODE_STORAGE_KEY, micMode);
+  }
+
+  buildPillGroup(
+    micModeOptionsEl,
+    MIC_MODES,
+    localStorage.getItem(MIC_MODE_STORAGE_KEY) || "manual",
+    (id) => { applyMicMode(id); maybeAutoStartMic(); }
+  );
+  applyMicMode(localStorage.getItem(MIC_MODE_STORAGE_KEY) || "manual");
+
+  // ---------- Duración de la grabación por voz ----------
+  const MIC_DURATIONS = [
+    { id: "3", label: "3 s" },
+    { id: "5", label: "5 s" },
+    { id: "10", label: "10 s" }
+  ];
+  const MIC_DURATION_STORAGE_KEY = "multiplica-mic-duration";
+  let recordSeconds;
+
+  function applyMicDuration(id) {
+    const seconds = [3, 5, 10].includes(Number(id)) ? Number(id) : 5;
+    recordSeconds = seconds;
+    setActivePill(micDurationOptionsEl, String(seconds));
+    localStorage.setItem(MIC_DURATION_STORAGE_KEY, String(seconds));
+  }
+
+  buildPillGroup(
+    micDurationOptionsEl,
+    MIC_DURATIONS,
+    localStorage.getItem(MIC_DURATION_STORAGE_KEY) || "5",
+    (id) => applyMicDuration(id)
+  );
+  applyMicDuration(localStorage.getItem(MIC_DURATION_STORAGE_KEY) || "5");
+
+  // ---------- Mostrar/ocultar teclado numérico (para dejar solo el micro) ----------
+  const KEYPAD_VISIBILITY = [
+    { id: "show", label: "Mostrar" },
+    { id: "hide", label: "Solo micro" }
+  ];
+  const KEYPAD_STORAGE_KEY = "multiplica-keypad-visible";
+
+  function applyKeypadVisible(id) {
+    const visible = id !== "hide";
+    keypadEl.hidden = !visible;
+    setActivePill(keypadOptionsEl, visible ? "show" : "hide");
+    localStorage.setItem(KEYPAD_STORAGE_KEY, visible ? "show" : "hide");
+  }
+
+  buildPillGroup(
+    keypadOptionsEl,
+    KEYPAD_VISIBILITY,
+    localStorage.getItem(KEYPAD_STORAGE_KEY) || "show",
+    (id) => applyKeypadVisible(id)
+  );
+  applyKeypadVisible(localStorage.getItem(KEYPAD_STORAGE_KEY) || "show");
 
   // ---------- Generación de preguntas ----------
   // Aislado para poder ampliarlo más adelante (más operaciones, nº de dígitos, etc.)
@@ -478,12 +597,13 @@
     currentAnswer = "";
     answered = false;
     questionEl.textContent = `${current.a} × ${current.b} = ?`;
-    answerDisplayEl.textContent = " ";
+    answerDisplayEl.textContent = " ";
     answerDisplayEl.className = "answer-display";
-    feedbackEl.textContent = " ";
+    feedbackEl.textContent = " ";
     feedbackEl.className = "feedback";
     nextBtn.classList.remove("show");
     setKeypadEnabled(true);
+    maybeAutoStartMic();
   }
 
   function setKeypadEnabled(enabled) {
@@ -492,7 +612,7 @@
   }
 
   function updateAnswerDisplay() {
-    answerDisplayEl.textContent = currentAnswer.length ? currentAnswer : " ";
+    answerDisplayEl.textContent = currentAnswer.length ? currentAnswer : " ";
   }
 
   // ---------- Puntuación ----------
@@ -564,9 +684,9 @@
 
   // ---------- Voz ----------
   const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const RECORD_SECONDS = 3;
   let recognition = null;
   let listening = false;
+  let lastInterimGuess = null;
   let countdownTimeouts = [];
 
   function clearCountdown() {
@@ -578,19 +698,36 @@
 
   function startCountdown() {
     clearCountdown();
+    const seconds = recordSeconds;
+    document.documentElement.style.setProperty("--record-duration", seconds + "s");
     void micRingProgress.offsetWidth; // fuerza reflow para reiniciar la animación del anillo
     micRingProgress.classList.add("counting");
     countdownEl.classList.add("show");
-    countdownEl.textContent = RECORD_SECONDS;
-    for (let s = RECORD_SECONDS - 1; s >= 1; s--) {
-      countdownTimeouts.push(setTimeout(() => { countdownEl.textContent = s; }, (RECORD_SECONDS - s) * 1000));
+    countdownEl.textContent = seconds;
+    for (let s = seconds - 1; s >= 1; s--) {
+      countdownTimeouts.push(setTimeout(() => { countdownEl.textContent = s; }, (seconds - s) * 1000));
     }
     countdownTimeouts.push(setTimeout(() => {
       countdownEl.classList.remove("show");
       if (listening) {
         try { recognition.stop(); } catch (e) {}
       }
-    }, RECORD_SECONDS * 1000));
+    }, seconds * 1000));
+  }
+
+  // Si la grabación termina sin un resultado "final" (frecuente en Safari/iOS,
+  // que a veces nunca marca isFinal aunque sí transcribió bien), usamos el
+  // último resultado parcial reconocido como respuesta de respaldo.
+  function maybeAutoStartMic() {
+    if (!recognition) return;
+    if (micMode !== "auto") return;
+    if (answered || listening) return;
+    setTimeout(() => {
+      if (answered || listening) return;
+      try {
+        recognition.start();
+      } catch (e) {}
+    }, 400);
   }
 
   const SPANISH_NUMBER_WORDS = {
@@ -633,11 +770,12 @@
     try {
       recognition = new SpeechRecognitionImpl();
       recognition.lang = "es-ES";
-      recognition.interimResults = false;
+      recognition.interimResults = true;
       recognition.maxAlternatives = 3;
 
       recognition.onstart = () => {
         listening = true;
+        lastInterimGuess = null;
         micBtn.classList.add("listening");
         startCountdown();
       };
@@ -646,6 +784,11 @@
         listening = false;
         micBtn.classList.remove("listening");
         clearCountdown();
+        if (!answered && lastInterimGuess !== null) {
+          currentAnswer = String(lastInterimGuess);
+          updateAnswerDisplay();
+          submitAnswer();
+        }
       };
 
       recognition.onerror = () => {
@@ -656,16 +799,18 @@
 
       recognition.onresult = (event) => {
         if (answered) return;
-        for (let i = 0; i < event.results[0].length; i++) {
-          const transcript = event.results[0][i].transcript;
-          const num = parseSpokenNumber(transcript);
-          if (num !== null && !isNaN(num)) {
+        const result = event.results[event.results.length - 1];
+        for (let i = 0; i < result.length; i++) {
+          const num = parseSpokenNumber(result[i].transcript);
+          if (num === null || isNaN(num)) continue;
+          if (result.isFinal) {
             clearCountdown();
             currentAnswer = String(num);
             updateAnswerDisplay();
             submitAnswer();
             return;
           }
+          lastInterimGuess = num;
         }
       };
 
