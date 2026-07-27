@@ -111,6 +111,49 @@
     flex-direction: column;
     gap: 16px;
   }
+  .progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 4px;
+  }
+  .phase-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+  }
+  .phase-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .phase-bar-track {
+    flex: 1;
+    height: 8px;
+    border-radius: 6px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .phase-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--primary);
+    border-radius: 6px;
+    transition: width 0.3s ease;
+  }
+  .phase-fraction {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    white-space: nowrap;
+  }
+  .lives {
+    font-size: 1.1rem;
+    white-space: nowrap;
+    letter-spacing: 1px;
+  }
   .scoreboard {
     display: flex;
     justify-content: space-between;
@@ -120,12 +163,46 @@
   }
   .scoreboard span.value { color: var(--primary); }
   .card {
+    position: relative;
     background: var(--card);
     border-radius: 20px;
     padding: 24px;
     box-shadow: 0 4px 16px var(--shadow);
     text-align: center;
     transition: background 0.2s;
+  }
+  .game-over-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.78);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    padding: 20px;
+  }
+  .game-over-overlay[hidden] { display: none; }
+  .game-over-box { text-align: center; color: white; }
+  .game-over-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .game-over-detail {
+    font-size: 0.95rem;
+    opacity: 0.85;
+    margin-bottom: 18px;
+  }
+  .game-over-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
   }
   .question {
     font-size: 3rem;
@@ -391,12 +468,28 @@
   </div>
   <div class="theme-panel" id="themePanel" hidden></div>
 
+  <div class="progress-row">
+    <div class="phase-block">
+      <span class="phase-label">Fase <span id="phaseNum">1</span></span>
+      <div class="phase-bar-track"><div class="phase-bar-fill" id="phaseBarFill"></div></div>
+      <span class="phase-fraction" id="phaseFraction">0/10</span>
+    </div>
+    <div class="lives" id="livesDisplay">❤️❤️❤️</div>
+  </div>
+
   <div class="scoreboard">
     <div>Aciertos: <span class="value" id="correctCount">0</span>/<span id="totalCount">0</span></div>
     <div>Racha: <span class="value" id="streakCount">0</span></div>
   </div>
 
   <div class="card">
+    <div class="game-over-overlay" id="gameOverOverlay" hidden>
+      <div class="game-over-box">
+        <div class="game-over-title">💔 ¡Sin vidas!</div>
+        <div class="game-over-detail" id="gameOverDetail">Fase 1 · 0/10</div>
+        <button class="game-over-btn" id="gameOverRetryBtn">Volver a intentar</button>
+      </div>
+    </div>
     <div class="question" id="question">? × ? = ?</div>
 
     <div class="answer-display" id="answerDisplay">&nbsp;</div>
@@ -448,6 +541,14 @@
   let streakCount = 0;
   let muted = false;
 
+  const PHASE_LENGTH = 10; // aciertos necesarios para pasar de fase
+  const LIVES_START = 3;
+  const LIVES_CAP = 5;
+  let lives = LIVES_START;
+  let phase = 1;
+  let phaseProgress = 0;
+  let gameOver = false;
+
   // ---------- Elementos ----------
   const questionEl = document.getElementById("question");
   const answerDisplayEl = document.getElementById("answerDisplay");
@@ -475,6 +576,13 @@
   const keypadOptionsEl = document.getElementById("keypadOptions");
   const micRingProgress = document.getElementById("micRingProgress");
   const countdownEl = document.getElementById("countdown");
+  const livesDisplayEl = document.getElementById("livesDisplay");
+  const phaseNumEl = document.getElementById("phaseNum");
+  const phaseBarFillEl = document.getElementById("phaseBarFill");
+  const phaseFractionEl = document.getElementById("phaseFraction");
+  const gameOverOverlay = document.getElementById("gameOverOverlay");
+  const gameOverDetail = document.getElementById("gameOverDetail");
+  const gameOverRetryBtn = document.getElementById("gameOverRetryBtn");
 
   // ---------- Temas ----------
   // Añadir un tema nuevo solo requiere una entrada aquí + sus variables CSS (body[data-theme="..."]).
@@ -541,10 +649,12 @@
   // ---------- Dificultad ----------
   // Rango de factores (N × M) para cada nivel. El nivel "intermedio" excluye la
   // tabla del 1, que salía demasiado a menudo y hacía las preguntas triviales.
+  // extraLifeStreak: racha de aciertos seguidos necesaria para ganar una vida extra
+  // (más baja cuanto más difícil, porque cada pregunta ya cuesta más de por sí).
   const DIFFICULTIES = [
-    { id: "facil", label: "Fácil", min: 1, max: 5 },
-    { id: "intermedio", label: "Intermedio", min: 2, max: 10 },
-    { id: "dificil", label: "Difícil", min: 6, max: 10 }
+    { id: "facil", label: "Fácil", min: 1, max: 5, extraLifeStreak: 30 },
+    { id: "intermedio", label: "Intermedio", min: 2, max: 10, extraLifeStreak: 25 },
+    { id: "dificil", label: "Difícil", min: 6, max: 10, extraLifeStreak: 20 }
   ];
   const DIFFICULTY_STORAGE_KEY = "multiplica-difficulty";
   let difficultyId;
@@ -678,11 +788,51 @@
     streakCountEl.textContent = streakCount;
   }
 
-  resetBtn.addEventListener("click", () => {
+  function updateLivesDisplay() {
+    livesDisplayEl.textContent = "❤️".repeat(lives) + "🖤".repeat(Math.max(0, LIVES_CAP - lives));
+  }
+
+  function updatePhaseDisplay() {
+    phaseNumEl.textContent = phase;
+    phaseFractionEl.textContent = `${phaseProgress}/${PHASE_LENGTH}`;
+    phaseBarFillEl.style.width = Math.round((phaseProgress / PHASE_LENGTH) * 100) + "%";
+  }
+
+  function resetProgress() {
     correctCount = 0;
     totalCount = 0;
     streakCount = 0;
+    lives = LIVES_START;
+    phase = 1;
+    phaseProgress = 0;
+    gameOver = false;
+    gameOverOverlay.hidden = true;
     updateScoreboard();
+    updateLivesDisplay();
+    updatePhaseDisplay();
+  }
+
+  resetBtn.addEventListener("click", () => {
+    resetProgress();
+    newQuestion();
+  });
+
+  function triggerGameOver() {
+    gameOver = true;
+    gameOverDetail.textContent = `Fase ${phase} · ${phaseProgress}/${PHASE_LENGTH} en esta fase`;
+    gameOverOverlay.hidden = false;
+  }
+
+  gameOverRetryBtn.addEventListener("click", () => {
+    lives = LIVES_START;
+    streakCount = 0;
+    phaseProgress = 0; // reintenta la fase actual desde el principio, sin perder el número de fase alcanzado
+    gameOver = false;
+    gameOverOverlay.hidden = true;
+    updateLivesDisplay();
+    updatePhaseDisplay();
+    updateScoreboard();
+    newQuestion();
   });
 
   // ---------- Corrección ----------
@@ -698,22 +848,48 @@
     if (isCorrect) {
       correctCount++;
       streakCount++;
+      phaseProgress++;
+
+      let extraMsg = "";
+      const bonusThreshold = currentDifficulty().extraLifeStreak;
+      if (streakCount % bonusThreshold === 0 && lives < LIVES_CAP) {
+        lives++;
+        extraMsg += "  +1 vida ❤️";
+      }
+
+      let phaseUp = false;
+      if (phaseProgress >= PHASE_LENGTH) {
+        phase++;
+        phaseProgress = 0;
+        phaseUp = true;
+        extraMsg += `  ¡Fase ${phase} desbloqueada! 🚀`;
+      }
+
       answerDisplayEl.className = "answer-display correct";
-      feedbackEl.textContent = "¡Correcto! 🎉";
+      feedbackEl.textContent = "¡Correcto! 🎉" + extraMsg;
       feedbackEl.className = "feedback correct";
-      speak("¡Correcto!");
+      speak(phaseUp ? "¡Correcto! Fase superada." : "¡Correcto!");
+      updateLivesDisplay();
+      updatePhaseDisplay();
     } else {
       streakCount = 0;
+      lives--;
       answerDisplayEl.className = "answer-display wrong";
       feedbackEl.textContent = `Casi... era ${current.product}`;
       feedbackEl.className = "feedback wrong";
       speak(`Casi. Era ${current.product}`);
+      updateLivesDisplay();
     }
 
     updateScoreboard();
     setKeypadEnabled(false);
-    nextBtn.classList.add("show");
 
+    if (!isCorrect && lives <= 0) {
+      triggerGameOver();
+      return;
+    }
+
+    nextBtn.classList.add("show");
     setTimeout(() => {
       if (nextBtn.classList.contains("show")) newQuestion();
     }, 2200);
