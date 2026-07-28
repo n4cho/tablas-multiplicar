@@ -1,0 +1,27 @@
+{
+  "name": "multiplica",
+  "version": "0.2.0",
+  "description": "",
+  "main": "sw.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/n4cho/tablas-multiplicar.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/n4cho/tablas-multiplicar/issues"
+  },
+  "homepage": "https://github.com/n4cho/tablas-multiplicar#readme",
+  "devDependencies": {
+    "eslint": "^10.8.0",
+    "eslint-plugin-html": "^8.1.4",
+    "globals": "^17.8.0"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // empty' | { read -r f; case \"$f\" in */index.html|index.html|*/manifest*.json|manifest*.json|*/icons/*|*/game-logic.js|game-logic.js) echo '{\"systemMessage\":\"Recuerda: subir CACHE_NAME en sw.js y la version (APP_VERSION en index.html + version en package.json, semver: patch/minor/major).\"}';; esac; } 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
