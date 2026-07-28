@@ -1,11 +1,15 @@
 // Subir este número cada vez que se publique una versión nueva del juego,
 // para que los dispositivos que ya instalaron la app cojan los cambios.
-const CACHE_NAME = "tablas-multiplicar-v8";
+const CACHE_NAME = "tablas-multiplicar-v11";
 
 const ASSETS = [
   "./",
   "./index.html",
+  "./game-logic.js",
   "./manifest.json",
+  "./manifest.en.json",
+  "./manifest.de.json",
+  "./manifest.zh.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png"
