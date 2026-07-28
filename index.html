@@ -849,7 +849,7 @@
   // Semantic versioning (https://semver.org). Bump on every change: patch for
   // fixes/tweaks, minor for new backwards-compatible features, major for
   // breaking changes. Keep in sync with package.json's "version".
-  const APP_VERSION = "0.2.0";
+  const APP_VERSION = "0.2.1";
 
   // ---------- Estado ----------
   let current = null; // { a, b, product }
@@ -866,7 +866,6 @@
   let lives = LIVES_START;
   let phase = 1;
   let phaseProgress = 0;
-  let gameOver = false;
 
   // ---------- Elementos ----------
   const appVersionEl = document.getElementById("appVersion");
@@ -1509,7 +1508,7 @@
       quizSection.hidden = true;
       learnPanel.hidden = false;
       if (listening && recognition) {
-        try { recognition.stop(); } catch (e) {}
+        try { recognition.stop(); } catch {}
       }
       previewLearnStep();
     } else {
@@ -1611,7 +1610,7 @@
       osc.connect(gain).connect(ctx.destination);
       osc.start();
       osc.stop(now + dur + 0.02);
-    } catch (e) {}
+    } catch {}
   }
 
   let learnPlaying = false;
@@ -1742,7 +1741,6 @@
     lives = LIVES_START;
     phase = 1;
     phaseProgress = 0;
-    gameOver = false;
     gameOverOverlay.hidden = true;
     prizeOverlay.hidden = true;
     buildFactQueue();
@@ -1757,7 +1755,6 @@
   });
 
   function triggerGameOver() {
-    gameOver = true;
     gameOverDetail.textContent = t("gameOverDetail")(phase, phaseProgress, PHASE_LENGTH);
     gameOverOverlay.hidden = false;
   }
@@ -1766,7 +1763,6 @@
     lives = LIVES_START;
     streakCount = 0;
     phaseProgress = 0; // reintenta la fase actual desde el principio, sin perder el número de fase alcanzado
-    gameOver = false;
     gameOverOverlay.hidden = true;
     buildFactQueue();
     updateLivesDisplay();
@@ -1915,7 +1911,7 @@
     countdownTimeouts.push(setTimeout(() => {
       countdownEl.classList.remove("show");
       if (listening) {
-        try { recognition.stop(); } catch (e) {}
+        try { recognition.stop(); } catch {}
       }
     }, seconds * 1000));
   }
@@ -1931,7 +1927,7 @@
       if (answered || listening) return;
       try {
         recognition.start();
-      } catch (e) {}
+      } catch {}
     }, 400);
   }
 
@@ -1996,11 +1992,11 @@
         if (answered || listening) return;
         try {
           recognition.start();
-        } catch (e) {
+        } catch {
           // start() puede lanzar si ya hay una sesión en curso; se ignora.
         }
       });
-    } catch (e) {
+    } catch {
       recognition = null;
     }
   }
@@ -2018,7 +2014,7 @@
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = currentSpeechLang();
       window.speechSynthesis.speak(utter);
-    } catch (e) {
+    } catch {
       // Si falla la síntesis de voz, simplemente no hay refuerzo hablado.
     }
   }
