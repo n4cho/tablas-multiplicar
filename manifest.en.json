@@ -1,7 +1,7 @@
 {
-  "name": "Multiplication Tables",
-  "short_name": "Tables",
-  "description": "A game to practice multiplication tables using voice or keypad",
+  "name": "Times Tables",
+  "short_name": "Times Tables",
+  "description": "A game to practice your times tables using voice or keypad",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -690,8 +690,8 @@
   <div class="theme-panel" id="themePanel" hidden></div>
 
   <div class="mode-switch">
-    <button class="mode-btn active" id="quizModeBtn" data-mode="quiz">📝 Repaso</button>
     <button class="mode-btn" id="learnModeBtn" data-mode="learn">🎵 Aprender</button>
+    <button class="mode-btn active" id="quizModeBtn" data-mode="quiz">📝 Repaso</button>
   </div>
 
   <div class="learn-panel" id="learnPanel" hidden>
@@ -849,7 +849,7 @@
   // Semantic versioning (https://semver.org). Bump on every change: patch for
   // fixes/tweaks, minor for new backwards-compatible features, major for
   // breaking changes. Keep in sync with package.json's "version".
-  const APP_VERSION = "0.2.1";
+  const APP_VERSION = "0.2.2";
 
   // ---------- Estado ----------
   let current = null; // { a, b, product }
@@ -949,7 +949,7 @@
   // cambia con el idioma en vez de quedarse fijo en español.
   const MANIFEST_BY_LANG = {
     es: { href: "manifest.json", shortName: "Tablas" },
-    en: { href: "manifest.en.json", shortName: "Tables" },
+    en: { href: "manifest.en.json", shortName: "Times Tables" },
     de: { href: "manifest.de.json", shortName: "Einmaleins" },
     zh: { href: "manifest.zh.json", shortName: "乘法表" }
   };
@@ -1026,7 +1026,7 @@
       prizeSpeak: (label) => `¡Premio! ${label}`
     },
     en: {
-      gameTitle: "Multiplication Tables",
+      gameTitle: "Times Tables",
       installIos: 'Install the game: tap share 📤, then "Add to Home Screen".',
       installGeneric: "Install the game on this device to play it like an app.",
       installBtn: "Install",
