@@ -10,7 +10,7 @@
 <meta property="og:url" content="https://timestable.online/imprimir.html">
 <meta property="og:title" id="ogTitle" content="Tablas de multiplicar del 1 al 10 para imprimir">
 <meta property="og:description" id="ogDescription" content="Hoja A4 gratuita para imprimir con las tablas de multiplicar del 1 al 10, lista para repasar sin conexión.">
-<meta property="og:image" content="https://timestable.online/icons/hoja-tablas-multiplicar-1-10.png">
+<meta property="og:image" id="ogImage" content="https://timestable.online/icons/hoja-tablas-multiplicar-1-10-es.png">
 <link rel="icon" href="icons/icon-192.png">
 <style>
   :root {
@@ -152,7 +152,7 @@
   <div class="toolbar no-print">
     <a class="back-link" id="backLink" href="index.html">← Volver al juego</a>
     <div class="toolbar-actions">
-      <a class="download-link" id="downloadLink" href="icons/hoja-tablas-multiplicar-1-10.png" download>📷 Descargar imagen</a>
+      <a class="download-link" id="downloadLink" href="icons/hoja-tablas-multiplicar-1-10-es.png" download>📷 Descargar imagen</a>
       <button class="print-btn" id="printBtn" onclick="window.print()">🖨️ Imprimir</button>
     </div>
   </div>
@@ -173,8 +173,8 @@
   </div>
 
   <div class="preview-row no-print">
-    <a href="icons/hoja-tablas-multiplicar-1-10.png" download>
-      <img class="preview-thumb" src="icons/hoja-tablas-multiplicar-1-10.png" alt="Hoja para imprimir con las tablas de multiplicar del 1 al 10 - timestable.online">
+    <a id="previewLink" href="icons/hoja-tablas-multiplicar-1-10-es.png" download>
+      <img class="preview-thumb" id="previewImg" src="icons/hoja-tablas-multiplicar-1-10-es.png" alt="Hoja para imprimir con las tablas de multiplicar del 1 al 10 - timestable.online">
     </a>
   </div>
 </div>
@@ -190,17 +190,19 @@
       printBtn: "🖨️ Imprimir",
       backLink: "← Volver al juego",
       downloadLink: "📷 Descargar imagen",
+      imageAlt: "Hoja para imprimir con las tablas de multiplicar del 1 al 10 - timestable.online",
       footer: 'Practica gratis con reconocimiento de voz en <strong>timestable.online</strong>'
     },
     en: {
-      docTitle: "Multiplication tables 1 to 10 – free printable sheet | timestable.online",
-      description: "Free printable A4 sheet with the multiplication tables from 1 to 10, ready to practice offline.",
-      heading: "Multiplication tables 1 to 10",
+      docTitle: "Times tables 1 to 10 – free printable sheet | timestable.online",
+      description: "Free printable A4 sheet with the times tables from 1 to 10, ready to practice offline.",
+      heading: "Times tables 1 to 10",
       subtitle: "Printable sheet to practice offline",
       tableOf: (n) => `${n} times table`,
       printBtn: "🖨️ Print",
       backLink: "← Back to the game",
       downloadLink: "📷 Download image",
+      imageAlt: "Printable sheet with the times tables 1 to 10 - timestable.online",
       footer: 'Practice for free with speech recognition at <strong>timestable.online</strong>'
     },
     de: {
@@ -212,6 +214,7 @@
       printBtn: "🖨️ Drucken",
       backLink: "← Zurück zum Spiel",
       downloadLink: "📷 Bild herunterladen",
+      imageAlt: "Blatt zum Ausdrucken mit dem Einmaleins von 1 bis 10 - timestable.online",
       footer: 'Kostenlos üben mit Spracherkennung auf <strong>timestable.online</strong>'
     },
     zh: {
@@ -223,6 +226,7 @@
       printBtn: "🖨️ 打印",
       backLink: "← 返回游戏",
       downloadLink: "📷 下载图片",
+      imageAlt: "1至10乘法表打印页 - timestable.online",
       footer: '在 <strong>timestable.online</strong> 免费练习，支持语音识别'
     }
   };
@@ -241,6 +245,13 @@
   document.getElementById("printBtn").textContent = t.printBtn;
   document.getElementById("backLink").textContent = t.backLink;
   document.getElementById("downloadLink").textContent = t.downloadLink;
+
+  const imgPath = `icons/hoja-tablas-multiplicar-1-10-${lang}.png`;
+  document.getElementById("downloadLink").setAttribute("href", imgPath);
+  document.getElementById("previewLink").setAttribute("href", imgPath);
+  document.getElementById("previewImg").setAttribute("src", imgPath);
+  document.getElementById("previewImg").setAttribute("alt", t.imageAlt);
+  document.getElementById("ogImage").setAttribute("content", `https://timestable.online/${imgPath}`);
   document.getElementById("sheetFooter").innerHTML = t.footer;
 
   const grid = document.getElementById("sheetGrid");

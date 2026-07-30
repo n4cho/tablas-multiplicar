@@ -1,6 +1,6 @@
 // Subir este número cada vez que se publique una versión nueva del juego,
 // para que los dispositivos que ya instalaron la app cojan los cambios.
-const CACHE_NAME = "tablas-multiplicar-v16";
+const CACHE_NAME = "tablas-multiplicar-v17";
 
 const ASSETS = [
   "./",
@@ -14,7 +14,10 @@ const ASSETS = [
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png",
-  "./icons/hoja-tablas-multiplicar-1-10.png"
+  "./icons/hoja-tablas-multiplicar-1-10-es.png",
+  "./icons/hoja-tablas-multiplicar-1-10-en.png",
+  "./icons/hoja-tablas-multiplicar-1-10-de.png",
+  "./icons/hoja-tablas-multiplicar-1-10-zh.png"
 ];
 
 self.addEventListener("install", (event) => {

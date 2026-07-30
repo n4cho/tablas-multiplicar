@@ -7,8 +7,20 @@
   <url>
     <loc>https://timestable.online/imprimir.html</loc>
     <image:image>
-      <image:loc>https://timestable.online/icons/hoja-tablas-multiplicar-1-10.png</image:loc>
+      <image:loc>https://timestable.online/icons/hoja-tablas-multiplicar-1-10-es.png</image:loc>
       <image:title>Tablas de multiplicar del 1 al 10 para imprimir</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://timestable.online/icons/hoja-tablas-multiplicar-1-10-en.png</image:loc>
+      <image:title>Times tables 1 to 10 printable sheet</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://timestable.online/icons/hoja-tablas-multiplicar-1-10-de.png</image:loc>
+      <image:title>Einmaleins 1 bis 10 zum Ausdrucken</image:title>
+    </image:image>
+    <image:image>
+      <image:loc>https://timestable.online/icons/hoja-tablas-multiplicar-1-10-zh.png</image:loc>
+      <image:title>1至10乘法表打印页</image:title>
     </image:image>
   </url>
 </urlset>
