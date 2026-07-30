@@ -525,6 +525,7 @@
     font-size: 1.4rem;
     cursor: pointer;
     opacity: 0.7;
+    text-decoration: none;
   }
   .voice-unavailable {
     font-size: 0.85rem;
@@ -671,6 +672,7 @@
   <div class="top-controls">
     <button class="icon-btn" id="helpBtn" title="Cómo jugar">❓</button>
     <button class="icon-btn" id="settingsBtn" title="Configuración">🎚️</button>
+    <a class="icon-btn" id="printBtn" href="imprimir.html" target="_blank" rel="noopener" title="Imprimir tablas 1-10">🖨️</a>
     <button class="icon-btn" id="themeBtn" title="Cambiar tema">🎨</button>
     <button class="icon-btn" id="muteBtn" title="Silenciar/activar sonido">🔊</button>
     <button class="icon-btn" id="resetBtn" title="Reiniciar puntuación">↺</button>
@@ -859,7 +861,7 @@
   // Semantic versioning (https://semver.org). Bump on every change: patch for
   // fixes/tweaks, minor for new backwards-compatible features, major for
   // breaking changes. Keep in sync with package.json's "version".
-  const APP_VERSION = "0.2.4";
+  const APP_VERSION = "0.3.0";
 
   // ---------- Estado ----------
   let current = null; // { a, b, product }
@@ -903,6 +905,7 @@
   const themePanel = document.getElementById("themePanel");
   const appTitleEl = document.getElementById("appTitle");
   const settingsBtn = document.getElementById("settingsBtn");
+  const printBtn = document.getElementById("printBtn");
   const settingsPanel = document.getElementById("settingsPanel");
   const difficultyOptionsEl = document.getElementById("difficultyOptions");
   const micModeOptionsEl = document.getElementById("micModeOptions");
@@ -989,6 +992,7 @@
       ],
       helpCloseBtn: "¡A jugar! 🚀",
       settingsTooltip: "Configuración",
+      printTooltip: "Imprimir tablas 1-10",
       themeTooltip: "Cambiar tema",
       muteTooltip: "Silenciar/activar sonido",
       resetTooltip: "Reiniciar puntuación",
@@ -1055,6 +1059,7 @@
       ],
       helpCloseBtn: "Let's play! 🚀",
       settingsTooltip: "Settings",
+      printTooltip: "Print tables 1-10",
       themeTooltip: "Change theme",
       muteTooltip: "Mute/unmute sound",
       resetTooltip: "Reset score",
@@ -1121,6 +1126,7 @@
       ],
       helpCloseBtn: "Los geht's! 🚀",
       settingsTooltip: "Einstellungen",
+      printTooltip: "Einmaleins 1-10 drucken",
       themeTooltip: "Design wechseln",
       muteTooltip: "Ton stumm/an",
       resetTooltip: "Punktestand zurücksetzen",
@@ -1187,6 +1193,7 @@
       ],
       helpCloseBtn: "开始玩！🚀",
       settingsTooltip: "设置",
+      printTooltip: "打印1-10乘法表",
       themeTooltip: "切换主题",
       muteTooltip: "静音/开启声音",
       resetTooltip: "重置分数",
@@ -2096,6 +2103,7 @@
     helpBtn.title = t("helpTooltip");
     if (!helpOverlay.hidden) showHelp();
     settingsBtn.title = t("settingsTooltip");
+    printBtn.title = t("printTooltip");
     themeBtn.title = t("themeTooltip");
     muteBtn.title = t("muteTooltip");
     resetBtn.title = t("resetTooltip");

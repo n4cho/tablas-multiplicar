@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://timestable.online/</loc>
+  </url>
+  <url>
+    <loc>https://timestable.online/imprimir.html</loc>
+    <image:image>
+      <image:loc>https://timestable.online/icons/hoja-tablas-multiplicar-1-10.png</image:loc>
+      <image:title>Tablas de multiplicar del 1 al 10 para imprimir</image:title>
+    </image:image>
   </url>
 </urlset>

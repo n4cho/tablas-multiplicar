@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es" id="htmlEl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title id="docTitle">Tablas de multiplicar del 1 al 10 para imprimir | timestable.online</title>
+<meta name="description" id="metaDescription" content="Hoja A4 gratuita para imprimir con las tablas de multiplicar del 1 al 10, lista para repasar sin conexión.">
+<link rel="canonical" href="https://timestable.online/imprimir.html">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://timestable.online/imprimir.html">
+<meta property="og:title" id="ogTitle" content="Tablas de multiplicar del 1 al 10 para imprimir">
+<meta property="og:description" id="ogDescription" content="Hoja A4 gratuita para imprimir con las tablas de multiplicar del 1 al 10, lista para repasar sin conexión.">
+<meta property="og:image" content="https://timestable.online/icons/hoja-tablas-multiplicar-1-10.png">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+  :root {
+    --brand: #ff4fa3;
+    --ink: #241531;
+    --line: #d8cfe0;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #f4f1f8;
+    color: var(--ink);
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 24px 12px 48px;
+  }
+  .sheet {
+    width: 100%;
+    max-width: 900px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(36,21,49,0.12);
+    padding: 28px 32px 20px;
+  }
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .back-link {
+    color: var(--brand);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  .toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .download-link {
+    color: var(--brand);
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+  .preview-row {
+    margin-top: 18px;
+    text-align: center;
+  }
+  .preview-thumb {
+    max-width: 220px;
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    box-shadow: 0 6px 16px rgba(36,21,49,0.12);
+  }
+  .print-btn {
+    background: var(--brand);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 9px 18px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .sheet-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  .sheet-header img { width: 44px; height: 44px; border-radius: 10px; }
+  .sheet-heading { margin: 0; font-size: 1.5rem; font-weight: 800; color: var(--brand); }
+  .sheet-subtitle { margin: 2px 0 0; font-size: 0.85rem; opacity: 0.7; }
+  .domain-badge {
+    display: inline-block;
+    margin: 10px 0 20px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: #fff;
+    background: var(--brand);
+    padding: 5px 14px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+  .sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px 14px;
+  }
+  .table-col {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 6px 8px 8px;
+  }
+  .table-col h2 {
+    margin: 0 0 6px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid var(--brand);
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--brand);
+  }
+  .table-col table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  .table-col td { padding: 1.5px 2px; }
+  .table-col td.op, .table-col td.eq { text-align: center; opacity: 0.55; width: 12%; }
+  .table-col td.num { text-align: right; width: 22%; }
+  .table-col td.result { text-align: right; width: 24%; font-weight: 700; }
+  .sheet-footer {
+    margin-top: 22px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    font-size: 0.8rem;
+    opacity: 0.75;
+  }
+  .sheet-footer strong { color: var(--brand); }
+  @media (max-width: 720px) {
+    .sheet-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media print {
+    @page { size: A4 portrait; margin: 10mm; }
+    body { background: #fff; padding: 0; }
+    .sheet { box-shadow: none; border-radius: 0; padding: 0; max-width: none; }
+    .no-print { display: none !important; }
+    .sheet-grid { grid-template-columns: repeat(5, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <div class="toolbar no-print">
+    <a class="back-link" id="backLink" href="index.html">← Volver al juego</a>
+    <div class="toolbar-actions">
+      <a class="download-link" id="downloadLink" href="icons/hoja-tablas-multiplicar-1-10.png" download>📷 Descargar imagen</a>
+      <button class="print-btn" id="printBtn" onclick="window.print()">🖨️ Imprimir</button>
+    </div>
+  </div>
+
+  <div class="sheet-header">
+    <img src="icons/icon-192.png" alt="">
+    <div>
+      <h1 class="sheet-heading" id="heading">Tablas de multiplicar del 1 al 10</h1>
+      <p class="sheet-subtitle" id="subtitle">Hoja para imprimir y repasar sin conexión</p>
+    </div>
+  </div>
+  <span class="domain-badge">timestable.online</span>
+
+  <div class="sheet-grid" id="sheetGrid"></div>
+
+  <div class="sheet-footer" id="sheetFooter">
+    Practica gratis con reconocimiento de voz en <strong>timestable.online</strong>
+  </div>
+
+  <div class="preview-row no-print">
+    <a href="icons/hoja-tablas-multiplicar-1-10.png" download>
+      <img class="preview-thumb" src="icons/hoja-tablas-multiplicar-1-10.png" alt="Hoja para imprimir con las tablas de multiplicar del 1 al 10 - timestable.online">
+    </a>
+  </div>
+</div>
+
+<script>
+  const I18N = {
+    es: {
+      docTitle: "Tablas de multiplicar del 1 al 10 para imprimir | timestable.online",
+      description: "Hoja A4 gratuita para imprimir con las tablas de multiplicar del 1 al 10, lista para repasar sin conexión.",
+      heading: "Tablas de multiplicar del 1 al 10",
+      subtitle: "Hoja para imprimir y repasar sin conexión",
+      tableOf: (n) => `Tabla del ${n}`,
+      printBtn: "🖨️ Imprimir",
+      backLink: "← Volver al juego",
+      downloadLink: "📷 Descargar imagen",
+      footer: 'Practica gratis con reconocimiento de voz en <strong>timestable.online</strong>'
+    },
+    en: {
+      docTitle: "Multiplication tables 1 to 10 – free printable sheet | timestable.online",
+      description: "Free printable A4 sheet with the multiplication tables from 1 to 10, ready to practice offline.",
+      heading: "Multiplication tables 1 to 10",
+      subtitle: "Printable sheet to practice offline",
+      tableOf: (n) => `${n} times table`,
+      printBtn: "🖨️ Print",
+      backLink: "← Back to the game",
+      downloadLink: "📷 Download image",
+      footer: 'Practice for free with speech recognition at <strong>timestable.online</strong>'
+    },
+    de: {
+      docTitle: "Einmaleins 1 bis 10 zum Ausdrucken | timestable.online",
+      description: "Kostenloses A4-Blatt zum Ausdrucken mit dem Einmaleins von 1 bis 10, ideal zum Offline-Üben.",
+      heading: "Einmaleins von 1 bis 10",
+      subtitle: "Zum Ausdrucken und Offline-Üben",
+      tableOf: (n) => `Einmaleins der ${n}`,
+      printBtn: "🖨️ Drucken",
+      backLink: "← Zurück zum Spiel",
+      downloadLink: "📷 Bild herunterladen",
+      footer: 'Kostenlos üben mit Spracherkennung auf <strong>timestable.online</strong>'
+    },
+    zh: {
+      docTitle: "1至10乘法表 可打印 | timestable.online",
+      description: "免费的A4乘法表打印页，包含1至10的乘法表，随时离线练习。",
+      heading: "1至10乘法表",
+      subtitle: "可打印，随时离线练习",
+      tableOf: (n) => `${n}的乘法表`,
+      printBtn: "🖨️ 打印",
+      backLink: "← 返回游戏",
+      downloadLink: "📷 下载图片",
+      footer: '在 <strong>timestable.online</strong> 免费练习，支持语音识别'
+    }
+  };
+
+  const LANG_STORAGE_KEY = "multiplica-language";
+  const lang = I18N[localStorage.getItem(LANG_STORAGE_KEY)] ? localStorage.getItem(LANG_STORAGE_KEY) : "es";
+  const t = I18N[lang];
+
+  document.getElementById("htmlEl").lang = lang;
+  document.getElementById("docTitle").textContent = t.docTitle;
+  document.getElementById("metaDescription").setAttribute("content", t.description);
+  document.getElementById("ogTitle").setAttribute("content", t.heading);
+  document.getElementById("ogDescription").setAttribute("content", t.description);
+  document.getElementById("heading").textContent = t.heading;
+  document.getElementById("subtitle").textContent = t.subtitle;
+  document.getElementById("printBtn").textContent = t.printBtn;
+  document.getElementById("backLink").textContent = t.backLink;
+  document.getElementById("downloadLink").textContent = t.downloadLink;
+  document.getElementById("sheetFooter").innerHTML = t.footer;
+
+  const grid = document.getElementById("sheetGrid");
+  for (let n = 1; n <= 10; n++) {
+    const col = document.createElement("div");
+    col.className = "table-col";
+
+    const h2 = document.createElement("h2");
+    h2.textContent = t.tableOf(n);
+    col.appendChild(h2);
+
+    const table = document.createElement("table");
+    for (let i = 1; i <= 10; i++) {
+      const row = table.insertRow();
+      row.insertCell().outerHTML = `<td class="num">${n}</td>`;
+      row.insertCell().outerHTML = `<td class="op">×</td>`;
+      row.insertCell().outerHTML = `<td class="num">${i}</td>`;
+      row.insertCell().outerHTML = `<td class="eq">=</td>`;
+      row.insertCell().outerHTML = `<td class="result">${n * i}</td>`;
+    }
+    col.appendChild(table);
+    grid.appendChild(col);
+  }
+</script>
+</body>
+</html>
